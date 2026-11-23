@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ジェネラティブアート図鑑</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: 静かで精密な数学図版の図鑑。線そのものが主役
+   IDEA: 図版を一枚ずつ並べた標本カタログ(プレート集)。上の一枚は動く
+   PICTURE: 上部の大きなプレートで、描画アニメと動きアニメを再生
+   COLOUR and TYPE: 白/墨の地に系統ごとの単色インク。Zen Kaku Gothic New
+   LAYOUT: タイトル→再生プレートと解説→系統リンク→11系統の図版グリッド */
+:root{color-scheme:light dark;--bg:light-dark(#ffffff,#121316);--ink:light-dark(#1d1d1f,#ececec);--sub:light-dark(#5d5d62,#a6a6ad);--line:light-dark(#e4e4e2,#2c2d32);--plate:light-dark(#f4f4f1,#1b1c20)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html:lang(zh-Hant) body{font-family:"Noto Sans TC",system-ui,sans-serif}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 "Zen Kaku Gothic New",system-ui,sans-serif;overflow-x:clip}
+.band{padding:clamp(24px,4vw,56px) max(5vw,16px);max-width:1320px;margin:0 auto}
+h1{font-size:clamp(32px,5vw,48px);line-height:1.1;margin:0 0 10px;font-weight:700;text-wrap:balance}
+.lead{color:var(--sub);margin:0;max-width:62ch}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.lang{display:flex;gap:4px;flex:none}
+.lang button{min-height:40px;padding:0 12px;border-radius:8px;border:1px solid var(--line);background:transparent;cursor:pointer;font-size:14px}
+.lang button[aria-pressed=true]{border-color:var(--ink);font-weight:700}
+.hero{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:clamp(20px,4vw,48px);align-items:center;margin-top:28px}
+.hero canvas{width:100%;aspect-ratio:1;display:block;background:var(--plate);border-radius:6px}
+.tag{display:inline-block;font-size:13px;font-weight:500;color:var(--c);border:1px solid var(--c);border-radius:99px;padding:2px 12px}
+.hero h2{font-size:clamp(28px,3.6vw,40px);line-height:1.15;margin:14px 0 18px;font-weight:700}
+.hero dl{margin:0}.hero dt{font-size:13px;color:var(--sub);margin-top:14px}.hero dd{margin:2px 0 0;font-size:17px}
+.ctl{display:flex;gap:8px;margin-top:20px;flex-wrap:wrap}
+button{font:inherit;color:inherit}
+.ctl button{min-height:44px;padding:0 16px;border-radius:8px;border:1px solid var(--line);background:transparent;cursor:pointer;font-size:15px}
+.ctl button:hover{border-color:var(--sub)}
+.ctl button.on{border-color:var(--c);color:var(--c);font-weight:500}
+.ctl button[hidden]{display:none}
+.mvnote{font-size:14px;color:var(--sub);margin:12px 0 0;min-height:1.6em}
+button:focus-visible{outline:2px solid var(--c,#378ADD);outline-offset:2px}
+nav{position:sticky;top:0;z-index:2;background:var(--bg);border-bottom:1px solid var(--line)}
+nav .scroll{display:flex;gap:6px;overflow-x:auto;padding:10px max(5vw,16px);max-width:1320px;margin:0 auto;scrollbar-width:none}
+nav a{flex:none;font-size:14px;color:var(--ink);text-decoration:none;padding:6px 12px;border-radius:99px;border:1px solid var(--line);white-space:nowrap}
+nav a:hover{border-color:var(--c)}
+section{scroll-margin-top:64px}
+.sh{display:flex;align-items:baseline;gap:12px;border-top:2px solid var(--c);padding-top:12px;margin:0 0 18px}
+.sh h2{margin:0;font-size:22px;font-weight:700;color:var(--c)}.sh span{color:var(--sub);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:22px 16px}
+.card{all:unset;cursor:pointer;display:flex;flex-direction:column;justify-content:flex-start;align-self:start}
+.card canvas{width:100%;aspect-ratio:1;display:block;background:var(--plate);border-radius:6px;outline:1px solid transparent;transition:outline-color .15s}
+.card:hover canvas{outline-color:var(--c)}
+.card:focus-visible canvas{outline:2px solid var(--c)}
+.card b{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:15px;font-weight:700;margin:8px 0 4px}
+.card b small{font-size:11px;font-weight:500;color:var(--c);border:1px solid var(--c);border-radius:99px;padding:0 7px;line-height:1.6}
+.card p{margin:0;font-size:13px;line-height:1.55;color:var(--sub)}
+.card p i{font-style:normal;color:var(--c);font-weight:500;margin-right:4px}
+.how{margin-top:clamp(24px,3vw,40px);border-top:1px solid var(--line);padding-top:20px}
+.howbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tabs{display:flex;gap:4px;flex:1;flex-wrap:wrap}
+.tabs button,.copy{min-height:44px;padding:0 16px;border-radius:8px;border:1px solid var(--line);background:transparent;cursor:pointer;font-size:15px}
+.tabs button[aria-selected=true]{border-color:var(--c);color:var(--c);font-weight:700}
+.copy{font-weight:500}
+.howmeta{margin:14px 0 10px;font-size:15px;line-height:1.7}
+.howmeta .tag{margin-right:8px}
+.how pre{margin:0;background:var(--plate);border-radius:8px;padding:16px 18px;overflow:auto;max-height:480px;font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre;tab-size:2}
+.how pre[hidden]{display:none}
+.how pre.wrap{white-space:pre-wrap;overflow-wrap:anywhere}
+footer{color:var(--sub);font-size:13px}
+@media(max-width:700px){.hero{grid-template-columns:minmax(0,1fr)}.grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}}
+@media(prefers-reduced-motion:reduce){.card canvas{transition:none}html{scroll-behavior:auto}}
+html{scroll-behavior:smooth;scroll-padding-top:64px}
+</style>
+</head>
+<body>
+<header class="band">
+<div class="top"><h1 data-u="title">ジェネラティブアート図鑑</h1><div class="lang" role="group" aria-label="Language"><button data-l="ja">日本語</button><button data-l="en">English</button><button data-l="zh">繁體中文</button></div></div>
+<p class="lead" data-u="lead"></p>
+<div class="hero" id="hero">
+<canvas id="big" width="680" height="680"></canvas>
+<div>
+<span class="tag" id="hTag"></span>
+<h2 id="hName"></h2>
+<dl><dt data-u="look"></dt><dd id="hV"></dd><dt data-u="use"></dt><dd id="hU"></dd><dt data-u="expl"></dt><dd id="hX" style="font-size:15px;line-height:1.7"></dd></dl>
+<div class="ctl" role="group" aria-label="再生"><button id="bDraw" data-u="draw"></button><button id="bMove" data-u="move"></button><button id="bStop" data-u="stop"></button></div>
+<p class="mvnote" id="hM" aria-live="polite"></p>
+<div class="ctl"><button id="prev" data-u="prev"></button><button id="next" data-u="next"></button><button id="rand" data-u="rand"></button></div>
+</div>
+</div>
+<div class="how" id="how">
+<div class="howbar"><div class="tabs" role="tablist" aria-label="作り方"><button role="tab" id="tE" aria-selected="true" data-u="tabE"></button><button role="tab" id="tP" aria-selected="false" data-u="tabP"></button></div><button class="copy" id="copy" data-u="copy"></button></div>
+<p class="howmeta" id="howMeta"></p>
+<pre id="howPre"><code id="howCode"></code></pre>
+</div>
+</header>
+<nav id="navEl"><div class="scroll" id="nav"></div></nav>
+<main class="band" id="main"></main>
+<footer class="band" data-u="footer"></footer>
+<script>
+{
+const TAU=Math.PI*2,D=Math.PI/180;
+const gcd=(a,b)=>b?gcd(b,a%b):a;
+const hex=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+function fitL(L,S,m){m=m??.08;let a=1e9,b=-1e9,e=1e9,d=-1e9;for(const p of L)for(const q of p){if(q[0]<a)a=q[0];if(q[0]>b)b=q[0];if(q[1]<e)e=q[1];if(q[1]>d)d=q[1]}const s=S*(1-2*m)/Math.max(b-a,d-e,1e-9),ox=(S-(b-a)*s)/2-a*s,oy=(S-(d-e)*s)/2-e*s;return L.map(p=>p.map(q=>[q[0]*s+ox,q[1]*s+oy]))}
+const fit=(p,S,m)=>fitL([p],S,m)[0];
+function poly(c,p,cl){c.beginPath();for(let i=0;i<p.length;i++){const q=p[i];i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1])}if(cl)c.closePath();c.stroke()}
+const draw=(c,S,L,m)=>fitL(L,S,m).forEach(p=>poly(c,p));
+function crv(fn,t0,t1,n){const p=[];for(let i=0;i<=n;i++)p.push(fn(t0+(t1-t0)*i/n));return p}
+const circ=(c,x,y,r)=>{c.beginPath();c.arc(x,y,Math.max(0,r),0,TAU);c.stroke()};
+const dot=(c,x,y,r)=>{c.beginPath();c.arc(x,y,r,0,TAU);c.fill()};
+function lsys(ax,rules,n,ang,a0){let s=ax;for(let i=0;i<n;i++){let t='';for(const ch of s)t+=rules[ch]??ch;s=t}let x=0,y=0,a=(a0||0)*D;const A=ang*D,st=[],L=[];let cur=[[0,0]];for(const ch of s){if(ch==='F'||ch==='G'){x+=Math.cos(a);y+=Math.sin(a);cur.push([x,y])}else if(ch==='+')a+=A;else if(ch==='-')a-=A;else if(ch==='[')st.push([x,y,a]);else if(ch===']'){if(cur.length>1)L.push(cur);[x,y,a]=st.pop();cur=[[x,y]]}}if(cur.length>1)L.push(cur);return L}
+const A=(d,a)=>({d,a});
+const steps=(fnD,lo,hi,per)=>S=>(c,t)=>{const n=hi-lo+1,k=Math.floor(t/per)%(n+2);fnD(c,S,lo+Math.min(k,n-1))};
+const ls=(ax,rules,n,ang,a0,m)=>{const f=(c,S)=>draw(c,S,lsys(ax,rules,n,ang,a0),m);f.mv=A('再帰の世代を1段ずつ進める(置き換えルールを繰り返す回数)',S=>{const cache={};return(c,t)=>{const k=Math.floor(t/1.1)%(n+2),d=Math.min(n,1+k);(cache[d]??=fitL(lsys(ax,rules,d,ang,a0),S,m)).forEach(p=>poly(c,p))}});return f};
+function dens(c,S,col,a,m){m=m??.06;let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;const n=a.length/2;for(let i=0;i<n;i++){const x=a[2*i],y=a[2*i+1];if(!isFinite(x)||!isFinite(y))continue;if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}const s=S*(1-2*m)/Math.max(x1-x0,y1-y0),ox=(S-(x1-x0)*s)/2,oy=(S-(y1-y0)*s)/2,B=new Float32Array(S*S);let mx=0;for(let i=0;i<n;i++){const px=(ox+(a[2*i]-x0)*s)|0,py=(oy+(a[2*i+1]-y0)*s)|0;if(px<0||py<0||px>=S||py>=S)continue;const k=py*S+px;B[k]++;if(B[k]>mx)mx=B[k]}const im=c.createImageData(S,S),[r,g,b]=hex(col),L=Math.log(1+mx);for(let k=0;k<S*S;k++){if(!B[k])continue;const o=k*4;im.data[o]=r;im.data[o+1]=g;im.data[o+2]=b;im.data[o+3]=Math.min(255,(Math.log(1+B[k])/L)*1.5*255+40)}c.putImageData(im,0,0)}
+function it2(f,x,y,n,skip){const a=new Float32Array(2*n);for(let i=0;i<n+skip;i++){const q=f(x,y);x=q[0];y=q[1];if(i>=skip){a[2*(i-skip)]=x;a[2*(i-skip)+1]=y}}return a}
+function esc(c,S,col,f){const im=c.createImageData(S,S),[r,g,b]=hex(col);for(let j=0;j<S;j++)for(let i=0;i<S;i++){const v=f(i/S,j/S),o=(j*S+i)*4;im.data[o]=r;im.data[o+1]=g;im.data[o+2]=b;im.data[o+3]=Math.max(0,Math.min(1,v))*255}c.putImageData(im,0,0)}
+function ode(f,s,dt,n,skip,pr){const p=[];for(let i=0;i<n;i++){const d=f(s);s[0]+=d[0]*dt;s[1]+=d[1]*dt;s[2]+=d[2]*dt;if(i>skip)p.push(pr(s))}return p}
+const lowRes=(res,fnT)=>(S,col)=>{const oc=document.createElement('canvas');oc.width=oc.height=res;const ox=oc.getContext('2d');return(c,t)=>{fnT(ox,res,col,t);c.imageSmoothingEnabled=true;c.drawImage(oc,0,0,S,S)}};
+const spin3=(P3,tilt,spd,w,al)=>S=>{const n=P3.length;let cx=0,cy=0,cz=0;P3.forEach(p=>{cx+=p[0];cy+=p[1];cz+=p[2]});cx/=n;cy/=n;cz/=n;const Q=P3.map(p=>[p[0]-cx,p[1]-cy,p[2]-cz]);const ds=Q.map(p=>Math.hypot(p[0],p[1],p[2])).sort((x,y)=>x-y),mr=ds[Math.floor(ds.length*.995)];const s=S*.44/mr,ct=Math.cos(tilt),st=Math.sin(tilt);return(c,t)=>{const a=t*spd,ca=Math.cos(a),sa=Math.sin(a);c.lineWidth=S/300*w;c.globalAlpha=al;c.beginPath();for(let i=0;i<n;i++){const p=Q[i],x1=p[0]*ca+p[2]*sa,z1=-p[0]*sa+p[2]*ca,X=S/2+x1*s,Y=S/2+(p[1]*ct-z1*st)*s;i?c.lineTo(X,Y):c.moveTo(X,Y)}c.stroke();c.globalAlpha=1}};
+const rollPt=(R,r,d,epi)=>t=>epi?[(R+r)*Math.cos(t)-d*Math.cos((R+r)/r*t),(R+r)*Math.sin(t)-d*Math.sin((R+r)/r*t)]:[(R-r)*Math.cos(t)+d*Math.cos((R-r)/r*t),(R-r)*Math.sin(t)-d*Math.sin((R-r)/r*t)];
+const rl=(R,r,d,epi,T,per)=>{const f=(c,S)=>poly(c,fit(crv(rollPt(R,r,d,epi),0,T,4000),S,.1));f.mv=A(epi?'固定円の外側を円が転がり、ペン先の軌跡を描く':'固定円の内側を円が転がり、ペン先の軌跡を描く',S=>{const pt=rollPt(R,r,d,epi),mr=epi?R+2*r:Math.max(R,R-r+d),s=S*.42/mr,cx=S/2,M=q=>[cx+q[0]*s,cx+q[1]*s],cr=epi?R+r:R-r;return(c,t)=>{const p=Math.min(1,(t%(per+1.5))/per)*T,n=Math.max(2,Math.ceil(p/T*3000));c.globalAlpha=.3;circ(c,cx,cx,R*s);c.globalAlpha=1;poly(c,crv(u=>M(pt(u)),0,p,n));const cc=M([cr*Math.cos(p),cr*Math.sin(p)]),pe=M(pt(p));c.globalAlpha=.5;circ(c,cc[0],cc[1],r*s);c.beginPath();c.moveTo(cc[0],cc[1]);c.lineTo(pe[0],pe[1]);c.stroke();c.globalAlpha=1;dot(c,pe[0],pe[1],S*.009)}});return f};
+const pythP=(al,D0)=>{const P=[],rot=(v,t)=>[v[0]*Math.cos(t)-v[1]*Math.sin(t),v[0]*Math.sin(t)+v[1]*Math.cos(t)];const f=(p0,p1,d)=>{const v=[p1[0]-p0[0],p1[1]-p0[1]],n=[v[1],-v[0]],p2=[p1[0]+n[0],p1[1]+n[1]],p3=[p0[0]+n[0],p0[1]+n[1]];P.push([[p0,p1,p2,p3],d]);if(!d)return;const w=rot(v,-al),k=Math.cos(al),ap=[p3[0]+w[0]*k,p3[1]+w[1]*k];f(p3,ap,d-1);f(ap,p2,d-1)};f([0,0],[1,0],D0);return P};
+const pyth=(c,S,al)=>{const P=pythP(al,10);fitL(P.map(q=>q[0]),S,.06).forEach((q,i)=>{c.globalAlpha=.3+.7*P[i][1]/10;c.beginPath();q.forEach((r,j)=>j?c.lineTo(r[0],r[1]):c.moveTo(r[0],r[1]));c.fill()});c.globalAlpha=1};
+const ttDraw=(c,S,k)=>{const N=200,R=S*.44,P=a=>[S/2+R*Math.cos(a+Math.PI),S/2+R*Math.sin(a+Math.PI)];circ(c,S/2,S/2,R);c.lineWidth=S/300*.5;c.globalAlpha=.75;c.beginPath();for(let i=0;i<N;i++){const a=P(i/N*TAU),b=P(i*k/N*TAU);c.moveTo(a[0],a[1]);c.lineTo(b[0],b[1])}c.stroke();c.globalAlpha=1};
+const thin=(w,a,fn)=>(c,S,col)=>{c.lineWidth=S/300*w;c.globalAlpha=a;fn(c,S,col);c.globalAlpha=1};
+const pc=(fn,t0,t1,n,m)=>(c,S)=>poly(c,fit(crv(fn,t0,t1,n),S,m??.08));
+const dpAcc=s=>{const g=9.81,[a1,a2,w1,w2]=s,dl=a1-a2,den=3-Math.cos(2*a1-2*a2);return[w1,w2,(-3*g*Math.sin(a1)-g*Math.sin(a1-2*a2)-2*Math.sin(dl)*(w2*w2+w1*w1*Math.cos(dl)))/den,(2*Math.sin(dl)*(2*w1*w1+2*g*Math.cos(a1)+w2*w2*Math.cos(dl)))/den]};
+const rk4=(s,h)=>{const k1=dpAcc(s),k2=dpAcc(s.map((v,j)=>v+k1[j]*h/2)),k3=dpAcc(s.map((v,j)=>v+k2[j]*h/2)),k4=dpAcc(s.map((v,j)=>v+k3[j]*h));return s.map((v,j)=>v+h/6*(k1[j]+2*k2[j]+2*k3[j]+k4[j]))};
+
+const sierD=(c,S,D0)=>{const t=(a,b,q,d)=>{if(!d){c.beginPath();c.moveTo(a[0],a[1]);c.lineTo(b[0],b[1]);c.lineTo(q[0],q[1]);c.fill();return}const m=(u,v)=>[(u[0]+v[0])/2,(u[1]+v[1])/2],ab=m(a,b),bq=m(b,q),qa=m(q,a);t(a,ab,qa,d-1);t(ab,b,bq,d-1);t(qa,bq,q,d-1)};const h=S*.84*.866;t([S/2,(S-h)/2],[S*.92,(S+h)/2],[S*.08,(S+h)/2],D0)};
+const carpD=(c,S,D0)=>{const f=(x,y,s,d)=>{if(!d){c.fillRect(x,y,s,s);return}const t=s/3;for(let i=0;i<3;i++)for(let j=0;j<3;j++)if(i!==1||j!==1)f(x+i*t,y+j*t,t,d-1)};f(S*.08,S*.08,S*.84,D0)};
+const vicD=(c,S,D0)=>{const f=(x,y,s,d)=>{if(!d){c.fillRect(x,y,s,s);return}const t=s/3;[[1,1],[0,1],[2,1],[1,0],[1,2]].forEach(([i,j])=>f(x+i*t,y+j*t,t,d-1))};f(S*.08,S*.08,S*.84,D0)};
+const tsqD=(c,S,D0)=>{c.globalAlpha=.3;const f=(x,y,s,d)=>{if(!d)return;c.fillRect(x-s/2,y-s/2,s,s);const h=s/2;[[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([i,j])=>f(x+i*h,y+j*h,h,d-1))};f(S/2,S/2,S*.42,D0);c.globalAlpha=1};
+const cantD=(c,S,D0)=>{const f=(x,w,y,d)=>{c.fillRect(x,y,w,S*.05);if(d<D0){const t=w/3;f(x,t,y+S*.13,d+1);f(x+2*t,t,y+S*.13,d+1)}};f(S*.06,S*.88,S*.14,1)};
+const htD=(c,S,D0)=>{const L=[];const f=(x,y,l,h,d)=>{if(!d)return;const a=h?[x-l/2,y]:[x,y-l/2],b=h?[x+l/2,y]:[x,y+l/2];L.push([a,b]);f(a[0],a[1],l/Math.SQRT2,!h,d-1);f(b[0],b[1],l/Math.SQRT2,!h,d-1)};f(0,0,1,true,D0);const s=S*.84/2.05,M=q=>[S/2+q[0]*s,S/2+q[1]*s];L.forEach(p=>poly(c,p.map(M)))};
+const apolD=(c,S,L0)=>{const lim=L0>=10?260:3*Math.pow(1.75,L0),sc=S*.44;const C=(k,x,y)=>({k,x,y}),dr=o=>circ(c,S/2+o.x*sc,S/2+o.y*sc,Math.abs(1/o.k)*sc);const g=(a,b,q,d)=>{const k=2*(a.k+b.k+q.k)-d.k;if(k>lim)return;const e=C(k,(2*(a.k*a.x+b.k*b.x+q.k*q.x)-d.k*d.x)/k,(2*(a.k*a.y+b.k*b.y+q.k*q.y)-d.k*d.y)/k);dr(e);g(a,b,e,q);g(a,q,e,b);g(b,q,e,a)};const c0=C(-1,0,0),c1=C(2,.5,0),c2=C(2,-.5,0),c3=C(3,0,2/3),c4=C(3,0,-2/3);c.lineWidth=S/300*.8;[c0,c1,c2,c3,c4].forEach(dr);for(const t of[c3,c4]){g(c0,c1,t,c2);g(c0,c2,t,c1);g(c1,c2,t,c0)}};
+const fordD=(c,S,Q)=>{const sc=S*.44,y0=S*.72,X=x=>S*.06+(x+.5)*sc;c.lineWidth=S/300;for(let q=1;q<=Q;q++)for(let p=0;p<=q;p++){if(gcd(p,q)!==1)continue;const r=1/(2*q*q);circ(c,X(p/q),y0-r*sc,r*sc)}c.beginPath();c.moveTo(S*.04,y0);c.lineTo(S*.96,y0);c.stroke()};
+const steinD=(c,S,ph)=>{const ring=(x,y,R,n,p,d)=>{const s=Math.sin(Math.PI/n),r=R*(1-s)/(1+s),rho=(R-r)/2,dd=(R+r)/2;circ(c,x,y,R);for(let k=0;k<n;k++){const a=p+k*TAU/n;circ(c,x+dd*Math.cos(a),y+dd*Math.sin(a),rho)}if(d)ring(x,y,r,n,-p*1.6+Math.PI/n,d-1);else circ(c,x,y,r)};ring(S/2,S/2,S*.44,8,ph,2)};
+const treeD=(c,S,sp)=>{const f=(x,y,l,a,d)=>{if(!d)return;const x2=x+l*Math.cos(a),y2=y+l*Math.sin(a);c.lineWidth=S/300*Math.max(.5,d*.35);c.beginPath();c.moveTo(x,y);c.lineTo(x2,y2);c.stroke();f(x2,y2,l*.72,a-sp,d-1);f(x2,y2,l*.72,a+sp,d-1)};f(S/2,S*.95,S*.235,-Math.PI/2,11)};
+const collD=(c,S,N,ev,od)=>{const L=[];for(let n=2;n<N;n++){const s=[];let v=n;while(v!==1){s.push(v);v=v%2?3*v+1:v/2}s.push(1);s.reverse();let x=0,y=0,a=-Math.PI/2;const p=[[0,0]];for(const v of s){a+=v%2?od:ev;x+=Math.cos(a);y+=Math.sin(a);p.push([x,y])}L.push(p)}c.globalAlpha=.12;draw(c,S,L,.06);c.globalAlpha=1};
+const maurD=(c,S,d)=>{const n=6,P=[];for(let k=0;k<=360;k++){const t=k*d*D,r=Math.sin(n*t);P.push([r*Math.cos(t),r*Math.sin(t)])}const s=S*.44,m=p=>p.map(q=>[S/2+q[0]*s,S/2+q[1]*s]);c.globalAlpha=.55;c.lineWidth=S/300*.6;poly(c,m(P));c.globalAlpha=1;c.lineWidth=S/300*1.6;poly(c,m(crv(t=>{const r=Math.sin(n*t);return[r*Math.cos(t),r*Math.sin(t)]},0,TAU,1500)))};
+const guilD=(c,S,ph)=>{c.lineWidth=S/300*.6;c.globalAlpha=.45;for(let j=0;j<36;j++)poly(c,crv(t=>{const r=(.72+.16*Math.sin(7*t+j*.09+ph)+.06*Math.sin(21*t-j*.05-ph*.5)+j*.004)*S*.425;return[S/2+r*Math.cos(t),S/2+r*Math.sin(t)]},0,TAU,1200),1);c.globalAlpha=1};
+const harmD=(c,S,ph,n)=>{c.lineWidth=S/300*.5;c.globalAlpha=.7;const s=S*.21;poly(c,crv(t=>{const e=Math.exp(-.004*t);return[S/2+s*e*(Math.sin(2.01*t+ph)+Math.sin(3*t+1.2)),S/2+s*e*(Math.sin(3.003*t+.4)+Math.sin(2*t+2.1+ph*.7))]},0,250,n));c.globalAlpha=1};
+const sfD=(c,S,n23)=>{for(let k=0;k<7;k++){const n1=.3+k*.25,p=crv(t=>{const r=Math.pow(Math.abs(Math.cos(6*t/4))**n23+Math.abs(Math.sin(6*t/4))**n23,-1/n1);return[r*Math.cos(t),r*Math.sin(t)]},0,TAU,1000);let mx=0;p.forEach(q=>mx=Math.max(mx,Math.hypot(q[0],q[1])));const s=S*.44*(1-k*.11)/mx;poly(c,p.map(q=>[S/2+q[0]*s,S/2+q[1]*s]),1)}};
+const seP=(S,n)=>{const e=2/n;return crv(t=>{const ct=Math.cos(t),st=Math.sin(t);return[S/2+S*.42*Math.sign(ct)*Math.abs(ct)**e,S/2+S*.42*Math.sign(st)*Math.abs(st)**e]},0,TAU,1600)};
+const heartP=(S,k)=>crv(t=>[S/2+16*Math.sin(t)**3*S*.026*k,S*.47-(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t))*S*.026*k],0,TAU,800);
+const phylD=(c,S,ga)=>{const N=600,k=S*.44/Math.sqrt(N);for(let i=0;i<N;i++){const a=i*ga,r=k*Math.sqrt(i);dot(c,S/2+r*Math.cos(a),S/2+r*Math.sin(a),S*.009)}};
+const logB=Math.log((1+Math.sqrt(5))/2)/(Math.PI/2);
+const spinCurve=(fn,t0,t1,n,spd,w)=>S=>{const P=crv(fn,t0,t1,n);let mr=0;P.forEach(q=>mr=Math.max(mr,Math.hypot(q[0],q[1])));const s=S*.45/mr;return(c,t)=>{const a=t*spd,ca=Math.cos(a),sa=Math.sin(a);c.lineWidth=S/300*(w||1.2);poly(c,P.map(q=>[S/2+(q[0]*ca-q[1]*sa)*s,S/2+(q[0]*sa+q[1]*ca)*s]))}};
+const pursP=S=>{let P=[[S*.08,S*.08],[S*.92,S*.08],[S*.92,S*.92],[S*.08,S*.92]];const out=[];for(let k=0;k<70;k++){out.push(P);P=P.map((p,i)=>{const q=P[(i+1)%4];return[p[0]+(q[0]-p[0])*.07,p[1]+(q[1]-p[1])*.07]})}return out};
+const starD=(c,S,n,m)=>{const R=S*.44,P=[];for(let k=0;k<=n;k++){const a=(k*m%n)/n*TAU-Math.PI/2;P.push([S/2+R*Math.cos(a),S/2+R*Math.sin(a)])}poly(c,P,1)};
+const FK=[[1,1],[-2,.5],[3,.3],[-5,.18],[7,.1]];
+const fourD=(c,S,T,full)=>{const z=t=>{let x=0,y=0;for(const[k,a]of FK){x+=a*Math.cos(k*t);y+=a*Math.sin(k*t)}return[x,y]},s=S*.21,m=q=>[S/2+q[0]*s,S/2+q[1]*s];if(full)poly(c,crv(t=>m(z(t)),0,TAU,1500),1);else{c.globalAlpha=.2;poly(c,crv(t=>m(z(t)),0,TAU,1500),1);c.globalAlpha=1;c.lineWidth=S/300*2;poly(c,crv(t=>m(z(t)),T-2.2,T,300));c.lineWidth=S/300*1.2}let x=0,y=0;c.globalAlpha=.45;c.lineWidth=S/300*.8;for(const[k,a]of FK){const p=m([x,y]);circ(c,p[0],p[1],a*s);const nx=x+a*Math.cos(k*T),ny=y+a*Math.sin(k*T),q=m([nx,ny]);c.beginPath();c.moveTo(p[0],p[1]);c.lineTo(q[0],q[1]);c.stroke();x=nx;y=ny}c.globalAlpha=1;const e=m([x,y]);dot(c,e[0],e[1],S*.009)};
+const sqD=(c,S,M)=>{const f=(x,M)=>{let y=0;for(let k=1;k<=M;k+=2)y+=Math.sin(k*x)/k;return y*4/Math.PI},P=M=>crv(x=>[S*.06+x/(4*Math.PI)*S*.88,S/2-f(x,M)*S*.2],0,4*Math.PI,1500);c.globalAlpha=.3;poly(c,P(1));if(M>3)poly(c,P(3));c.globalAlpha=1;poly(c,P(M))};
+const chF=(n,m,x,y)=>Math.cos(n*Math.PI*x)*Math.cos(m*Math.PI*y)-Math.cos(m*Math.PI*x)*Math.cos(n*Math.PI*y);
+const chD=(c,S,a,div)=>{const g=Math.round(S/div),z=S/g,ca=Math.cos(a),sa=Math.sin(a);for(let j=0;j<g;j++)for(let i=0;i<g;i++){const x=i/g*2-1,y=j/g*2-1,v=ca*chF(2,5,x,y)+sa*chF(3,7,x,y);if(Math.abs(v)<.07)c.fillRect(i*z,j*z,z,z)}};
+const contD=(c,S,t)=>{const G=[[.3,.35,1,.2],[.7,.6,-.8,.18],[.5,.82,.6,.15],[.2,.75,-.5,.12],[.8,.22,.7,.14]].map((q,i)=>[(q[0]+.08*Math.sin(t*.5+i*1.7))*S,(q[1]+.08*Math.cos(t*.4+i*2.3))*S,q[2],q[3]*S]);const F=(x,y)=>{let v=0;for(const[a,b,w,s]of G)v+=w*Math.exp(-((x-a)**2+(y-b)**2)/(2*s*s));return v};const n=80,g=S/n,V=[];for(let j=0;j<=n;j++){V[j]=[];for(let i=0;i<=n;i++)V[j][i]=F(i*g,j*g)}const mn=-1.3,mx=1.3;c.lineWidth=S/300;for(let l=1;l<18;l++){const lv=mn+(mx-mn)*l/18;c.beginPath();for(let j=0;j<n;j++)for(let i=0;i<n;i++){const C=[[i,j],[i+1,j],[i+1,j+1],[i,j+1]],pt=[];for(let e=0;e<4;e++){const[a0,b0]=C[e],[a1,b1]=C[(e+1)%4],va=V[b0][a0],vb=V[b1][a1];if((va<lv)!==(vb<lv)){const u=(lv-va)/(vb-va);pt.push([(a0+(a1-a0)*u)*g,(b0+(b1-b0)*u)*g])}}if(pt.length>=2){c.moveTo(pt[0][0],pt[0][1]);c.lineTo(pt[1][0],pt[1][1])}if(pt.length===4){c.moveTo(pt[2][0],pt[2][1]);c.lineTo(pt[3][0],pt[3][1])}}c.stroke()}};
+const mandF=(X,Y,w,it)=>(u,v)=>{const cx=X+(u-.5)*w,cy=Y+(v-.5)*w;let x=0,y=0,i=0;for(;i<it&&x*x+y*y<4;i++){const t=x*x-y*y+cx;y=2*x*y+cy;x=t}return i===it?1:Math.sqrt(i/it)*.65};
+const juliaF=(cr,ci,it)=>(u,v)=>{let x=-1.6+u*3.2,y=-1.6+v*3.2,i=0;for(;i<it&&x*x+y*y<4;i++){const t=x*x-y*y+cr;y=2*x*y+ci;x=t}return i===it?1:Math.sqrt(i/it)*.75};
+const shipF=(X,Y,w,it)=>(u,v)=>{const cx=X+(u-.5)*w,cy=Y+(v-.5)*w;let x=0,y=0,i=0;for(;i<it&&x*x+y*y<4;i++){const t=x*x-y*y+cx;y=Math.abs(2*x*y)+cy;x=Math.abs(t)}return i===it?1:Math.sqrt(i/it)*.6};
+const P3=(f,s,dt,n,skip,pr)=>ode(f,s,dt,n,skip,pr);
+const LZ=([x,y,z])=>[10*(y-x),x*(28-z)-y,x*y-8/3*z],RS=([x,y,z])=>[-y-z,x+.2*y,.2+z*(x-5.7)],AZ=([x,y,z])=>[(z-.7)*x-3.5*y,3.5*x+(z-.7)*y,.6+.95*z-z**3/3-(x*x+y*y)*(1+.25*z)+.1*z*x**3];
+const cliff=(a,b,n)=>it2((x,y)=>[Math.sin(a*y)+Math.cos(a*x),Math.sin(b*x)+.7*Math.cos(b*y)],.1,.1,n,10);
+const djong=(a,n)=>it2((x,y)=>[Math.sin(a*y)-Math.cos(-2.3*x),Math.sin(2.4*x)-Math.cos(-2.1*y)],.1,.1,n,10);
+const ikeda=(u,n)=>it2((x,y)=>{const t=.4-6/(1+x*x+y*y);return[1+u*(x*Math.cos(t)-y*Math.sin(t)),u*(x*Math.sin(t)+y*Math.cos(t))]},0,0,n,100);
+const stdmap=(K,n,it)=>{const a=new Float32Array(2*n*it);let o=0;for(let k=0;k<n;k++){let t=(k*.618034%1)*TAU,p=(k*.381966%1)*TAU;for(let i=0;i<it;i++){p=(p+K*Math.sin(t))%TAU;if(p<0)p+=TAU;t=(t+p)%TAU;a[o++]=t;a[o++]=p}}return a};
+
+const SEC=[
+{id:'replace',t:'置き換えで描く線のフラクタル',c:'#7F77DD',it:[
+['コッホ曲線','線分の中央が三角に盛り上がるのを繰り返したギザギザ線','波形・地形の輪郭、成長アニメ',ls('F',{F:'F+F--F+F'},4,60)],
+['コッホ雪片','三角形の各辺をコッホ曲線にした雪の結晶形','雪・氷の演出、冬のタイトル',ls('F--F--F',{F:'F+F--F+F'},4,60)],
+['チェザロ曲線','コッホより鋭い角度で折れる、内側に食い込む線','鋭いエッジの装飾、ひび割れ',ls('F',{F:'F+F--F+F'},5,85)],
+['2次コッホ島','直角の凹凸が入れ子になった島のような閉曲線','地図・島の表現、テック系フレーム',ls('F+F+F+F',{F:'F-F+F+FF-F-F+F'},3,90)],
+['ミンコフスキー・ソーセージ','直角の凸凹が連なる、細長い入れ子状の線','回路・配線風のライン、ボーダー',ls('F',{F:'F+F-F-FF+F+F-F'},3,90)],
+['ドラゴン曲線','一筆書きで折り畳まれた、竜のような塊','トリムパスで「走る線」、パターン背景',ls('F',{F:'F+G',G:'F-G'},12,90)],
+['レヴィC曲線','左右対称の、アーチ状に房が並ぶ形','装飾フレーム、紋章風モチーフ',ls('F',{F:'+F--F+'},12,45)],
+['シェルピンスキーの三角形','三角形の中に抜き穴が再帰的に増える','テック背景、ズームのループ',(c,S)=>sierD(c,S,6),A('再帰の深さを1段ずつ増やす',steps(sierD,0,6,.8))],
+['シェルピンスキーの矢じり','一本の線が折れ曲がってシェルピンスキー三角形を描く','描画アニメ、迷路的なライン',ls('F',{F:'G-F-G',G:'F+G+F'},7,60)],
+['シェルピンスキーのカーペット','正方形の中央が抜けるのを繰り返した格子','グリッチ素材、無限ズーム',(c,S)=>carpD(c,S,4),A('再帰の深さを1段ずつ増やす',steps(carpD,0,4,.9))],
+['ヴィチェック・フラクタル','十字が十字に分かれていく雪の結晶状の形','結晶・アイコン、ロゴリビール',(c,S)=>vicD(c,S,4),A('再帰の深さを1段ずつ増やす',steps(vicD,0,4,.9))],
+['T-スクエア','正方形が角ごとに小さく重なる、網目状の模様','テクスチャ、レイヤー重ねの背景',(c,S)=>tsqD(c,S,6),A('再帰の深さを1段ずつ増やす',steps(tsqD,1,6,.8))],
+['カントール集合','横棒が段ごとに3等分され、中央が抜けていく','バーコード風、データの演出、分割トランジション',(c,S)=>cantD(c,S,6),A('段数を1段ずつ増やす',steps(cantD,1,6,.7))]]},
+{id:'fill',t:'平面を埋める曲線',c:'#378ADD',it:[
+['ヒルベルト曲線','直角に曲がり続けて正方形を埋める一筆書き','回路・基板、データ転送の演出',ls('A',{A:'+BF-AFA-FB+',B:'-AF+BFB+FA-'},5,90)],
+['ペアノ曲線','蛇行しながら3×3単位で面を埋める線','迷路風背景、トリムパスの描画',ls('X',{X:'XFYFX+F+YFXFY-F-XFYFX',Y:'YFXFY-F-XFYFX+F+YFXFY'},3,90)],
+['ムーア曲線','ヒルベルト曲線をループ状に閉じた形','ループ素材、ネオンサイン風',ls('LFL+F+LFL',{L:'-RF+LFL+FR-',R:'+LF-RFR-FL+'},4,90)],
+['シェルピンスキー曲線','斜め45°で埋める、菱形の閉曲線','ダイヤ型の装飾、ロゴの枠',ls('F--XF--F--XF',{X:'XF+G+XF--F--XF+G+X'},4,45)],
+['ゴスパー曲線','六角形ベースで、雪片のような輪郭に面を埋める','有機的なテクスチャ、領域の塗りつぶし',ls('F',{F:'F-G--G+F++FF+G-',G:'+F-FF--F-G++G+F'},4,60)],
+['Zオーダー曲線','Z字が再帰的に並ぶ、ジグザグの格子','デジタル・データ処理の表現、走査演出',(c,S)=>{const p=[];for(let k=0;k<256;k++){let x=0,y=0;for(let b=0;b<4;b++){x|=((k>>(2*b))&1)<<b;y|=((k>>(2*b+1))&1)<<b}p.push([x,y])}poly(c,fit(p,S,.1))}]]},
+{id:'tree',t:'分岐する木',c:'#639922',it:[
+['L-system(植物)','文法ルールで育つ、自然な草木','植物の成長アニメ、エコ・自然系',ls('X',{X:'F+[[X]-X]-F[-FX]+X',F:'FF'},6,25,-90,.06)],
+['フラクタルツリー','同じ角度で二股に分かれ続ける樹形','成長アニメ、家系図・分岐の比喩',(c,S)=>treeD(c,S,.42),A('枝の分岐角度を揺らす(風になびく動き)',S=>(c,t)=>treeD(c,S,.42+.2*Math.sin(t*.9)))],
+['ピタゴラスの木','正方形と直角三角形が積み上がるブロッコリー状の木','教育系、幾何学的な成長演出',(c,S)=>pyth(c,S,45*D),A('直角三角形の角度を変化させる',S=>(c,t)=>pyth(c,S,(45+18*Math.sin(t*.7))*D))],
+['非対称ピタゴラスの木','片側に傾いて巻き込むピタゴラスの木','風に揺れる表現、ロゴの装飾',(c,S)=>pyth(c,S,33*D),A('傾きの角度を変化させる',S=>(c,t)=>pyth(c,S,(33+12*Math.sin(t*.6))*D))],
+['H-ツリー','H字が再帰的に並ぶ、整然とした格子','回路・ネットワーク、テック背景',(c,S)=>htD(c,S,11),A('再帰の深さを1段ずつ増やす',steps(htD,1,11,.6))],
+['コラッツの木','コラッツ数列を曲げて描いた、海藻のようにしなる束','アート系MV、有機的なライン',(c,S)=>collD(c,S,1200,.14,-.3),A('偶数と奇数で曲げる角度を変化させる',S=>(c,t)=>collD(c,S,500,.14+.05*Math.sin(t*.5),-.3+.1*Math.cos(t*.37)))]]},
+{id:'circle',t:'円の再帰と配置',c:'#1D9E75',it:[
+['アポロニウスのギャスケット','円の隙間に接する円を詰め続けた形','泡・細胞、無限ズーム',(c,S)=>apolD(c,S,10),A('隙間に詰める円を世代ごとに増やす',steps(apolD,0,10,.7))],
+['フォードの円','直線の上に大小の円が接して並ぶ','数学系の解説、ミニマル背景',(c,S)=>fordD(c,S,28),A('分母の上限を増やして円を足していく',steps(fordD,1,28,.22))],
+['シュタイナーの円鎖','2つの円の間に円がリング状に並ぶ','回転ループ素材、メカニカルなUI',(c,S)=>steinD(c,S,0),A('円の鎖を回転させる(内側は逆回転)',S=>(c,t)=>steinD(c,S,t*.35))],
+['サークルパッキング','大小の円が隙間なく詰まった配置','インフォグラフィック、ポップな背景',(c,S)=>{const C=[],m=S*.06,cx=S/2,R=S*.44;let sd=7;const rnd=()=>(sd=(sd*16807)%2147483647)/2147483647;for(let t=0;t<9000&&C.length<500;t++){const x=m+rnd()*(S-2*m),y=m+rnd()*(S-2*m),dc=R-Math.hypot(x-cx,y-cx);let r=Math.min(dc,S*.14);for(const q of C){const d=Math.hypot(x-q[0],y-q[1])-q[2]-S*.006;if(d<r)r=d;if(r<1.5)break}if(r>=S*.005)C.push([x,y,r])}c.lineWidth=S/300*.9;circ(c,cx,cx,R);C.forEach(q=>circ(c,q[0],q[1],q[2]))}]]},
+{id:'roll',t:'円が転がって描く曲線',c:'#D4537E',it:[
+['スピログラフ','花のような対称の幾何学模様','オープニング、和柄・紋章風',rl(8,5,6,0,TAU*5,10)],
+['エピサイクロイド','円の外側を転がる円が描く花びら状の線','ロゴ枠、歯車の表現',rl(5,1,1,1,TAU,5)],
+['カージオイド','ハート型に近い、くぼみが1つの曲線','光の反射(コースティクス)、ロマンチックな演出',rl(1,1,1,1,TAU,4)],
+['ネフロイド','くぼみが2つの、腎臓のような形','コーヒーカップの光の模様、ミニマル装飾',rl(2,1,1,1,TAU,4)],
+['デルトイド','3つの尖りを持つ、凹んだ三角形','尖ったアイコン、トランジションのマスク',rl(3,1,1,0,TAU,4)],
+['アステロイド','4つの尖りの星形','きらめき・星、キラッとした装飾',rl(4,1,1,0,TAU,4)],
+['マウラーのバラ','ローズ曲線上の点を直線で結んだ網目の花','繊細なオープニング、ロゴ背景',(c,S)=>maurD(c,S,71),A('点を結ぶ角度の間隔を連続的に変える',S=>(c,t)=>maurD(c,S,71+t*.8))],
+['ギョーシェ模様','紙幣のような細い線が波打って重なる帯','高級感、証書・セキュリティ風の演出',(c,S)=>guilD(c,S,0),A('波の位相をずらして帯をうねらせる',S=>(c,t)=>guilD(c,S,t*.8))]]},
+{id:'param',t:'パラメトリック曲線',c:'#D85A30',it:[
+['リサジュー曲線','sin/cosの組み合わせでループする線','オシロスコープ風UI、音楽ビジュアル',pc(t=>[Math.sin(5*t+Math.PI/2),Math.sin(4*t)],0,TAU,3000),A('片方の波の位相をずらし続ける',S=>(c,t)=>poly(c,crv(u=>[S/2+S*.42*Math.sin(5*u+Math.PI/2+t*.5),S/2+S*.42*Math.sin(4*u)],0,TAU,3000)))],
+['3Dリサジュー','リサジューを立体で回転させた、毛糸玉のような形','3Dの線アート、回転ループ',pc(t=>{const x=Math.sin(3*t),y=Math.sin(4*t+.6),z=Math.sin(7*t),a=.7,b=.4,x1=x*Math.cos(a)+z*Math.sin(a),z1=-x*Math.sin(a)+z*Math.cos(a);return[x1,y*Math.cos(b)-z1*Math.sin(b)]},0,TAU,4000),A('3D空間でY軸回転させる',S=>spin3(crv(t=>[Math.sin(3*t),Math.sin(4*t+.6),Math.sin(7*t)],0,TAU,3000),.4,.5,1.2,1)(S))],
+['ハーモノグラフ','減衰しながら渦を巻く線の重なり','タイトルバック、高級感のある背景',(c,S)=>harmD(c,S,0,20000),A('振り子の位相を少しずつずらす',S=>(c,t)=>harmD(c,S,t*.25,9000))],
+['二重振り子','予測できない動きで絡まる軌跡','カオスの表現、ランダムな線アート',thin(.6,.6,(c,S)=>{let s=[2.2,2.6,0,0];const P=[];for(let i=0;i<9000;i++){s=rk4(s,.004);P.push([S/2+(Math.sin(s[0])+Math.sin(s[1]))*S*.22,S/2+(Math.cos(s[0])+Math.cos(s[1]))*S*.22])}poly(c,P)}),A('物理シミュレーションをリアルタイムで実行',S=>{let s=null,tr=[],last=-1;return(c,t)=>{if(!s||t<last){s=[2.2,2.6,0,0];tr=[]}last=t;for(let k=0;k<4;k++)s=rk4(s,.004);const L=S*.22,o=[S/2,S/2],p1=[o[0]+Math.sin(s[0])*L,o[1]+Math.cos(s[0])*L],p2=[p1[0]+Math.sin(s[1])*L,p1[1]+Math.cos(s[1])*L];tr.push(p2);if(tr.length>1800)tr.shift();c.lineWidth=S/300*.7;c.globalAlpha=.6;poly(c,tr);c.globalAlpha=1;c.lineWidth=S/300*2;poly(c,[o,p1,p2]);dot(c,p1[0],p1[1],S*.012);dot(c,p2[0],p2[1],S*.012)}})],
+['バラ曲線','花びらが重なる極座標の曲線','ロゴアニメ、ループ素材',pc(t=>{const r=Math.cos(7/4*t);return[r*Math.cos(t),r*Math.sin(t)]},0,8*Math.PI,4000),A('花びらの数を決める係数kを連続的に変える',S=>(c,t)=>{const k=1.75+.3*Math.sin(t*.3);poly(c,crv(u=>{const r=S*.44*Math.cos(k*u);return[S/2+r*Math.cos(u),S/2+r*Math.sin(u)]},0,8*Math.PI,4000))})],
+['スーパーフォーミュラ','星・花・多角形を1つの式で作る、変形自在の形','モーフィング、有機的なシェイプアニメ',(c,S)=>sfD(c,S,1.7),A('指数パラメータを変えてモーフィング',S=>(c,t)=>sfD(c,S,1.7+1.3*Math.sin(t*.6)))],
+['スーパー楕円','四角と円の中間の、角の丸い形','UIパーツ、アイコンの角丸',(c,S)=>[.4,.6,.8,1,1.4,2,3,5].forEach(n=>poly(c,seP(S,n),1)),A('指数nを変えて星形→円→四角へ変形',S=>(c,t)=>{c.globalAlpha=.2;[.4,1,2,5].forEach(n=>poly(c,seP(S,n),1));c.globalAlpha=1;c.lineWidth=S/300*2.4;poly(c,seP(S,Math.exp(1.25*Math.sin(t*.7)+.35)),1)})],
+['バタフライ曲線','蝶の羽のような対称形','自然・季節の演出、装飾',thin(.7,1,pc(t=>{const r=Math.exp(Math.sin(t))-2*Math.cos(4*t)+Math.sin((2*t-Math.PI)/24)**5;return[Math.sin(t)*r,-Math.cos(t)*r]},0,24*Math.PI,8000))],
+['ハート曲線','数式で描くハート','バレンタイン・ウェディング、ポップな演出',pc(t=>[16*Math.sin(t)**3,-(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t))],0,TAU,800,.12),A('スケールを鼓動のように脈打たせる',S=>(c,t)=>{const u=t%1,b=Math.exp(-u*9)+.6*Math.exp(-Math.max(0,u-.22)*9)*(u>.22);c.lineWidth=S/300*2;poly(c,heartP(S,.95+.1*b),1)})],
+['トーラス結び目','ドーナツに巻き付く結び目の線','3Dロゴ、無限ループの象徴',pc(t=>{const r=Math.cos(5*t)+2.2;return[r*Math.cos(2*t),r*Math.sin(2*t)*.75-Math.sin(5*t)*.5]},0,TAU,3000),A('3D空間で回転させる',S=>spin3(crv(t=>{const r=Math.cos(5*t)+2.2;return[r*Math.cos(2*t),-Math.sin(5*t),r*Math.sin(2*t)]},0,TAU,3000),1,.6,1.4,1)(S))]]},
+{id:'spiral',t:'らせん',c:'#BA7517',it:[
+['フィロタキシス','ひまわりの種のような黄金角の点配置','ロゴリビール、有機的なトランジション',(c,S)=>phylD(c,S,2.39996323),A('配置角度を黄金角の前後でわずかに揺らす',S=>(c,t)=>phylD(c,S,2.39996323+.006*Math.sin(t*.3)))],
+['対数らせん(黄金)','外へ行くほど広がる、オウムガイ型のらせん','黄金比の解説、構図ガイド',(c,S)=>poly(c,fit(crv(t=>{const r=Math.exp(logB*t);return[r*Math.cos(t),r*Math.sin(t)]},-3*Math.PI,2.5*Math.PI,3000),S,.08)),A('回転させると自己相似で無限ズームに見える',spinCurve(t=>{const r=Math.exp(logB*t);return[r*Math.cos(t),r*Math.sin(t)]},-8*Math.PI,2.5*Math.PI,4000,-.9))],
+['アルキメデスらせん','一定の間隔で巻くらせん','催眠・渦の演出、レコード風',pc(t=>[t*Math.cos(t),t*Math.sin(t)],0,10*Math.PI,3000),A('回転させる(催眠の渦)',spinCurve(t=>[t*Math.cos(t),t*Math.sin(t)],0,10*Math.PI,3000,2))],
+['フェルマーらせん','中心が密で外へ行くほど詰まる二重らせん','渦・ワームホール、回転背景',thin(.6,1,(c,S)=>{const f=s=>crv(t=>{const r=s*Math.sqrt(t);return[r*Math.cos(t),r*Math.sin(t)]},0,50*Math.PI,8000);draw(c,S,[f(1),f(-1)],.08)}),A('二重らせんを回転させる',spinCurve(t=>{const r=Math.sqrt(Math.abs(t));return t<0?[-r*Math.cos(-t),-r*Math.sin(-t)]:[r*Math.cos(t),r*Math.sin(t)]},-50*Math.PI,50*Math.PI,12000,.6,.6))],
+['リチュウス','中心へ急速に巻き込む、渦巻きと尾の形','吸い込みのトランジション、装飾の渦',pc(t=>{const r=1/Math.sqrt(t);return[r*Math.cos(t),r*Math.sin(t)]},.25,80,6000)],
+['オイラーらせん','両端が渦に巻き込むS字の線','流れるライン、カリグラフィー風装飾',(c,S)=>{const arm=sg=>{const p=[[0,0]];let x=0,y=0;for(let s=0;s<5.5;s+=.002){x+=Math.cos(s*s)*.002*sg;y+=Math.sin(s*s)*.002*sg;p.push([x,y])}return p};draw(c,S,[arm(1),arm(-1)],.08)}]]},
+{id:'lines',t:'直線の重なりで曲線を作る',c:'#7F77DD',it:[
+['掛け算の円 ×2','円周上の点を直線で結び、カージオイドが浮かぶ','数学系の解説、係数を変えるアニメ',(c,S)=>ttDraw(c,S,2),A('掛ける数を2から連続的に増やす',S=>(c,t)=>ttDraw(c,S,2+t*.12))],
+['掛け算の円 ×37','係数を変えて生まれる、複雑な網目の花','係数を動かすモーフィング、ループ',(c,S)=>ttDraw(c,S,37),A('掛ける数を37から少しずつ動かす',S=>(c,t)=>ttDraw(c,S,37+t*.05))],
+['ストリングアート','直線だけで曲線の輪郭が見える糸かけ模様','手工芸風、ミニマル背景',(c,S)=>{const m=S*.08,w=S-2*m,n=30;c.lineWidth=S/300*.6;c.beginPath();for(let i=0;i<=n;i++){const t=i/n*w;c.moveTo(m,m+t);c.lineTo(m+t,S-m);c.moveTo(m+t,m);c.lineTo(S-m,m+t);c.moveTo(m+t,m);c.lineTo(m,S-m-t);c.moveTo(m+t,S-m);c.lineTo(S-m,S-m-t)}c.stroke();c.strokeRect(m,m,w,w)}],
+['追跡曲線(4匹の虫)','互いを追う点の軌跡が渦を描く四角の入れ子','渦のトランジション、幾何学背景',(c,S)=>{c.lineWidth=S/300*.7;pursP(S).forEach(P=>poly(c,P,1))},A('4匹の虫が互いを追いかけて中心へ進む',S=>{const PS=pursP(S);return(c,t)=>{const k=Math.min(PS.length-1,Math.floor((t%7)*14));c.lineWidth=S/300*.7;for(let i=0;i<=k;i++)poly(c,PS[i],1);c.lineWidth=S/300*1.6;for(let j=0;j<4;j++){c.beginPath();PS.slice(0,k+1).forEach((P,i)=>i?c.lineTo(P[j][0],P[j][1]):c.moveTo(P[j][0],P[j][1]));c.stroke();dot(c,PS[k][j][0],PS[k][j][1],S*.012)}}})],
+['スターポリゴン {17/7}','点を飛ばして結んだ星形','魔法陣・紋章、回転ループ',(c,S)=>starD(c,S,17,7),A('飛ばす点の数を1から8まで変える',S=>(c,t)=>starD(c,S,17,1+Math.floor(t/.9)%8))]]},
+{id:'wave',t:'回転・周波数・振動',c:'#378ADD',it:[
+['フーリエ級数(エピサイクル)','回転する円の連鎖が絵を描いていく','「円だけで絵を描く」解説、ロゴ描画',(c,S)=>fourD(c,S,1.1,true),A('円をそれぞれの速度で回転させて線を描く',S=>(c,t)=>fourD(c,S,t*.8,false))],
+['矩形波のフーリエ合成','サイン波を重ねて四角い波に近づく','音・信号の解説、教育系',(c,S)=>sqD(c,S,19),A('重ねるサイン波の数を1つずつ増やす',S=>(c,t)=>sqD(c,S,1+2*(Math.floor(t*1.2)%14)))],
+['クラドニ図形','振動する板に砂が描く対称の模様','音楽ビジュアル、周波数の表現',(c,S)=>chD(c,S,0,2),A('2つの振動モードを混ぜ合わせて変化させる',S=>(c,t)=>chD(c,S,t*.4,3))]]},
+{id:'chaos',t:'カオス・複素力学系',c:'#D85A30',it:[
+['ローレンツ・アトラクター','蝶の羽のような、交わらない3D軌道','SF・カオスの表現、3Dの線アート',thin(.5,.8,(c,S)=>poly(c,fit(ode(LZ,[.1,0,0],.004,14000,200,s=>[s[0],-s[2]]),S,.08))),A('3D空間で回転させる',S=>spin3(P3(LZ,[.1,0,0],.004,12000,200,s=>[s[0],-s[2],s[1]]),.15,.4,.5,.8)(S))],
+['クリフォード・アトラクター','煙や布のような、なめらかな点の雲','抽象背景、パラメータを動かすモーフィング',(c,S,col)=>dens(c,S,col,cliff(-1.4,1.6,160000)),A('式の係数a・bをゆっくり変える',lowRes(340,(c,S,col,t)=>dens(c,S,col,cliff(-1.4+.15*Math.sin(t*.25),1.6+.15*Math.cos(t*.2),45000))))],
+['de Jong アトラクター','絹のような濃淡のある点の集合','アート系MV、テクスチャ',(c,S,col)=>dens(c,S,col,djong(1.4,160000)),A('式の係数aをゆっくり変える',lowRes(340,(c,S,col,t)=>dens(c,S,col,djong(1.4+.25*Math.sin(t*.2),45000))))],
+['レスラー・アトラクター','円盤状に巻き、一部が跳ね上がる軌道','3D回転のループ素材',thin(.5,.8,(c,S)=>poly(c,fit(ode(RS,[1,1,0],.01,20000,500,s=>[s[0],-(s[1]*.8+s[2]*.2)]),S,.08))),A('3D空間で回転させる',S=>spin3(P3(RS,[1,1,0],.01,16000,500,s=>[s[0],-s[2],s[1]]),.9,.4,.5,.8)(S))],
+['Aizawa アトラクター','球を縦に貫く筒を持つ、繭のような形','3Dの線アート、SF的なオブジェ',thin(.5,.7,(c,S)=>poly(c,fit(ode(AZ,[.1,0,0],.01,25000,300,s=>[s[0]+s[1]*.3,-s[2]]),S,.08))),A('3D空間で回転させる',S=>spin3(P3(AZ,[.1,0,0],.01,20000,300,s=>[s[0],-s[2],s[1]]),.2,.4,.5,.7)(S))],
+['エノン写像','細い弧が何重にも重なるブーメラン形','ミニマルな数学アート',(c,S,col)=>dens(c,S,col,it2((x,y)=>[1-1.4*x*x+y,.3*x],.1,.1,80000,100))],
+['池田写像','渦を巻きながら巻き込む点の帯','渦・流体の表現',(c,S,col)=>dens(c,S,col,ikeda(.9,120000)),A('減衰の係数uを少しずつ変える',lowRes(340,(c,S,col,t)=>dens(c,S,col,ikeda(.88+.018*Math.sin(t*.4),45000))))],
+['ティンカーベル写像','鳥や翼に見える、ループした点の軌跡','有機的な点描アート',(c,S,col)=>dens(c,S,col,it2((x,y)=>[x*x-y*y+.9*x-.6013*y,2*x*y+2*x+.5*y],-.72,-.64,100000,100))],
+['標準写像','島や波が並ぶ、縞と渦の点模様','大理石・流体テクスチャ',(c,S,col)=>dens(c,S,col,stdmap(.97,110,500),.04),A('キック強度Kを変えて秩序とカオスを行き来する',lowRes(340,(c,S,col,t)=>dens(c,S,col,stdmap(.97+.5*Math.sin(t*.25),70,300),.04)))],
+['ロジスティック写像の分岐図','1本の線が分かれて、カオスの霧になる','「秩序からカオスへ」の解説、データ演出',(c,S,col)=>{const Wd=700,a=new Float32Array(Wd*250*2);let o=0;for(let i=0;i<Wd;i++){const r=2.8+1.2*i/Wd;let x=.5;for(let k=0;k<450;k++){x=r*x*(1-x);if(k>=200){a[o++]=r;a[o++]=-x}}}dens(c,S,col,a,.06)}],
+['マンデルブロ集合','縁が無限に入り組む、本体と色の帯','無限ズーム、サイケな背景',(c,S,col)=>esc(c,S,col,mandF(-.7,0,3,80)),A('境界の一点に向かって無限ズーム',lowRes(220,(c,S,col,t)=>{const k=t%24;esc(c,S,col,mandF(-.743643887,.131825904,3*Math.pow(.8,k),Math.round(80+k*10)))}))],
+['ジュリア集合','渦巻く縁を持つ、つながった形や塵状の形','パラメータを動かすモーフィング、MV',(c,S,col)=>esc(c,S,col,juliaF(-.8,.156,100)),A('定数cを円周上で動かして形を変える',lowRes(220,(c,S,col,t)=>esc(c,S,col,juliaF(.7885*Math.cos(t*.25+2.5),.7885*Math.sin(t*.25+2.5),90))))],
+['バーニングシップ','燃える船のような、炎状の縁','ダークな雰囲気の背景、無限ズーム',(c,S,col)=>esc(c,S,col,shipF(-.5,-.4,3.6,80)),A('小さな船に向かって無限ズーム',lowRes(220,(c,S,col,t)=>{const k=t%20,w=3.6*Math.pow(.78,k),X=-.5+(-1.762+.5)*(1-w/3.6),Y=-.4+(-.028+.4)*(1-w/3.6);esc(c,S,col,shipF(X,Y,w,Math.round(80+k*8)))}))],
+['ニュートン・フラクタル','3色の領域が境界で入り組む','カラフルなテクスチャ、境界のズーム',(c,S,col)=>esc(c,S,col,(u,v)=>{let x=-1.5+u*3,y=-1.5+v*3,i=0;for(;i<40;i++){const x2=x*x,y2=y*y,a=x*x2-3*x*y2-1,b=3*x2*y-y*y2,cc=x2-y2,dd=2*x*y,den=3*(cc*cc+dd*dd);if(den<1e-12)break;const nx=x-(a*cc+b*dd)/den,ny=y-(b*cc-a*dd)/den,st=Math.abs(nx-x)+Math.abs(ny-y);x=nx;y=ny;if(st<1e-6)break}const g=Math.atan2(y,x),root=g>1?0:g<-1?1:2;return(.3+root*.32)*(1-i/60)})]]},
+{id:'number',t:'数・数列・場',c:'#1D9E75',it:[
+['等高線','地図のような同じ高さの線の重なり','地形・地理系、ミニマル背景',(c,S)=>contD(c,S,0),A('山と谷の位置をゆっくり動かす',S=>(c,t)=>contD(c,S,t))],
+['ウラムのらせん','素数を並べると斜めの筋が浮かぶ点の模様','数学ミステリー系、データ演出',(c,S)=>{const n=101,z=S/n,pr=k=>{if(k<2)return 0;for(let d=2;d*d<=k;d++)if(k%d===0)return 0;return 1};let x=50,y=50,dx=1,dy=0,len=1,k=1,step=0,turns=0;while(k<=n*n){if(pr(k))c.fillRect(x*z,y*z,z*.9,z*.9);k++;x+=dx;y+=dy;step++;if(step===len){step=0;[dx,dy]=[dy,-dx];turns++;if(turns%2===0)len++}}}],
+['レカマン数列','数直線の上下に半円が飛び跳ねる','数学系の解説、音楽と連動した演出',(c,S)=>{const a=[0],seen=new Set([0]);for(let n=1;n<65;n++){const p=a[n-1]-n,v=p>0&&!seen.has(p)?p:a[n-1]+n;a.push(v);seen.add(v)}const mx=Math.max(...a),s=S*.88/mx;for(let n=1;n<a.length;n++){const cx=S*.06+(a[n-1]+a[n])/2*s,r=Math.abs(a[n]-a[n-1])/2*s;c.beginPath();if(n%2)c.arc(cx,S/2,r,Math.PI,TAU);else c.arc(cx,S/2,r,0,Math.PI);c.stroke()}}],
+['パスカルの三角形 mod 5','三角形の中に、三角の抜き模様が繰り返される','数学の解説、テックパターン',(c,S)=>{const N=50,h=S*.86/N;let row=[1];for(let r=0;r<N;r++){for(let k=0;k<=r;k++){const v=row[k];if(v){c.globalAlpha=.3+.7*v/4;c.fillRect(S/2+(k-r/2)*h-h/2,S*.07+r*h,h*.9,h*.9)}}const nr=[1];for(let k=1;k<=r;k++)nr.push((row[k-1]+row[k])%5);nr.push(1);row=nr}c.globalAlpha=1}]]}
+];
+
+const METH={
+expr:{l:'パスのエクスプレッション',p:'シェイプレイヤーのパスに createPath() を使うエクスプレッションを設定し、形の計算はすべてエクスプレッションで行う。点の数が多いと重くなるので、点の数もスライダーで調整できるようにする。'},
+index:{l:'レイヤー複製+エクスプレッション',p:'小さなシェイプレイヤーを1つ作り、指定した数だけ複製する。各レイヤーの位置やパスは index を使ったエクスプレッションで計算し、共通のパラメータはコントローラー用ヌルレイヤーから参照する。'},
+script:{l:'スクリプトで生成',p:'図形の数が多く1本のパスでは表現できないため、ExtendScriptで計算してシェイプグループを生成する。パラメータを変えて作り直せるように、ScriptUIのドッキング可能なパネルにスライダー(数値入力)と[生成]ボタンを付ける。生成したシェイプは1つのシェイプレイヤーにまとめ、線と塗りは後からまとめて変えられるようにする。'},
+ext:{l:'外部で計算→連番を読み込む',p:'ピクセル単位の計算(または数十万点の描画)が必要でエクスプレッションでは重すぎるため、Pythonで透過PNGの連番を書き出す。続けてExtendScriptでその連番をAEに読み込み、アクティブなコンポに配置するところまで自動化する。色はAE側の「色合い」「グロー」などで調整できるよう、Pythonでは白一色+透明度で書き出す。'}};
+const HD=(c,where,target,extra)=>{const L=['// 【適用先】'+target,where==='ctrl'?'// 【準備】ヌルレイヤーを作り名前を「CTRL」にして、「スライダー制御」を追加し名前を変更:':'// 【準備】このレイヤーに「スライダー制御」を追加し、名前を次のように変更:'];c.forEach(q=>L.push('//   '+q[0]+' = '+q[1]+'  … '+q[2]));if(extra)extra.split('\n').forEach(s=>L.push('// '+s));const src=where==='ctrl'?'thisComp.layer("CTRL").effect':'effect';c.forEach(q=>L.push('var '+q[0]+' = '+src+'("'+q[0]+'")(1);'));return L.join('\n')};
+const PATH='シェイプレイヤー > コンテンツ > パス1 > パス';
+const PX=o=>HD(o.c,'self',PATH,o.x)+'\n'+(o.pre?o.pre+'\n':'')+`var n = Math.max(2, Math.round(Points));
+var pts = [];
+for (var i = 0; i <= n; i++) {
+  var t = ${o.t0||'0'} + (${o.t1||'Math.PI * 2'} - ${o.t0||'0'}) * i / n;
+  ${o.b.split('\n').join('\n  ')}
+  pts.push([x * Size, y * Size]);
+}
+createPath(pts, [], [], ${o.cl?'true':'false'});`;
+const CENTER=`// 図形の中心をレイヤーの原点に合わせる
+var x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+for (var j = 0; j < pts.length; j++) { x0 = Math.min(x0, pts[j][0]); x1 = Math.max(x1, pts[j][0]); y0 = Math.min(y0, pts[j][1]); y1 = Math.max(y1, pts[j][1]); }
+for (var j = 0; j < pts.length; j++) pts[j] = [pts[j][0] - (x0 + x1) / 2, pts[j][1] - (y0 + y1) / 2];`;
+const LX=(ax,rules,it,ang,a0,cl,len)=>HD([['Iterations',it,'再帰の世代(上げすぎると重くなる)'],['Angle',ang,'曲がる角度(度)'],['Length',len,'1歩の長さ(px)']],'self',PATH,'L-system:文字列の置き換えを Iterations 回繰り返し、F/G で前進、+/- で回転')+`
+var it = Math.round(Iterations), ang = Angle * Math.PI / 180;
+var s = "${ax}";
+var R = ${JSON.stringify(rules).replace(/"(\w)":/g,'$1: ').replace(/,/g,', ')};
+for (var k = 0; k < it; k++) {
+  var o = "";
+  for (var j = 0; j < s.length; j++) { var ch = s.charAt(j); o += (R[ch] !== undefined) ? R[ch] : ch; }
+  s = o;
+}
+var x = 0, y = 0, a = ${a0||0} * Math.PI / 180, pts = [[0, 0]];
+for (var j = 0; j < s.length; j++) {
+  var ch = s.charAt(j);
+  if (ch == "F" || ch == "G") { x += Length * Math.cos(a); y += Length * Math.sin(a); pts.push([x, y]); }
+  else if (ch == "+") a += ang;
+  else if (ch == "-") a -= ang;
+}
+${CENTER}
+createPath(pts, [], [], ${cl?'true':'false'});`;
+const ODEX=(c,init,dt,f,extra,sz)=>HD(c.concat([['Steps',8000,'計算する点の数'],['RotY',0,'Y軸まわりの回転(度)。動かすと3D回転'],['Tilt',10,'前後の傾き(度)'],['Size',sz,'大きさ(倍率)']]),'self',PATH,extra)+`
+var n = Math.round(Steps), dt = ${dt}, s = ${init}, pts = [];
+var ry = RotY * Math.PI / 180, tl = Tilt * Math.PI / 180;
+for (var i = 0; i < n; i++) {
+  var x = s[0], y = s[1], z = s[2];
+  ${f}
+  s = [x + dx * dt, y + dy * dt, z + dz * dt];
+  if (i < 100) continue; // 初期の過渡部分は捨てる
+  var X = s[0], Y = -s[2], Z = s[1]; // z軸を画面の縦にする
+  var px = X * Math.cos(ry) + Z * Math.sin(ry), pz = -X * Math.sin(ry) + Z * Math.cos(ry);
+  pts.push([px * Size, (Y * Math.cos(tl) - pz * Math.sin(tl)) * Size]);
+}
+${CENTER}
+createPath(pts, [], [], false);`;
+const hypo='var x = (R - r) * Math.cos(t) + d * Math.cos((R - r) / r * t), y = (R - r) * Math.sin(t) - d * Math.sin((R - r) / r * t);';
+const epi='var x = (R + r) * Math.cos(t) - d * Math.cos((R + r) / r * t), y = (R + r) * Math.sin(t) - d * Math.sin((R + r) / r * t);';
+const ROLL=(R,r,d,sz,isEpi)=>PX({c:[['Points',3000,'点の数'],['Size',sz,'大きさ(倍率)'],['R',R,'固定円の半径(整数)'],['r',r,'転がる円の半径(整数)'],['d',d,'ペン先の距離(rと同じなら尖る)']],pre:'function g(a, b) { return b ? g(b, a % b) : a; }\nR = Math.round(R); r = Math.max(1, Math.round(r));\nvar turns = r / g(R, r); // 線が閉じるまでの周回数',t1:'Math.PI * 2 * turns',b:isEpi?epi:hypo,cl:true,x:'線を描く動きはトリムパスの「終了」をアニメーションさせる'});
+const SC=(name,why,hint)=>({why,hint});
+
+const AE={
+'コッホ曲線':{m:'expr',code:LX('F',{F:'F+F--F+F'},4,60,0,0,7)},
+'コッホ雪片':{m:'expr',code:LX('F--F--F',{F:'F+F--F+F'},4,60,0,1,7)},
+'チェザロ曲線':{m:'expr',code:LX('F',{F:'F+F--F+F'},5,85,0,0,12)},
+'2次コッホ島':{m:'expr',code:LX('F+F+F+F',{F:'F-F+F+FF-F-F+F'},3,90,0,1,5)},
+'ミンコフスキー・ソーセージ':{m:'expr',code:LX('F',{F:'F+F-F-FF+F+F-F'},3,90,0,0,9)},
+'ドラゴン曲線':{m:'expr',code:LX('F',{F:'F+G',G:'F-G'},12,90,0,0,6)},
+'レヴィC曲線':{m:'expr',code:LX('F',{F:'+F--F+'},12,45,0,0,4)},
+'シェルピンスキーの三角形':{m:'script',p:[['Depth',6,'再帰の深さ','0〜8'],['Size',600,'全体の大きさ(px)','100〜1500']],note:'三角形が数百〜数千個に分かれるため、1本のパスでは描けません。スクリプトで三角形のシェイプを一括生成するのが確実です。手作業で作るなら、三角形1つにリピーター(コピー数3・位置ずらし)を入れ子にする方法もあります。'},
+'シェルピンスキーの矢じり':{m:'expr',code:LX('F',{F:'G-F-G',G:'F+G+F'},7,60,0,0,5)},
+'シェルピンスキーのカーペット':{m:'script',p:[['Depth',4,'再帰の深さ','0〜5'],['Size',600,'全体の大きさ(px)','100〜1500']],note:'正方形が数千個になるため、スクリプトで生成するのが確実です。浅い深さなら、正方形にリピーターを入れ子にしても作れます。'},
+'ヴィチェック・フラクタル':{m:'script',p:[['Depth',4,'再帰の深さ','0〜5'],['Size',600,'全体の大きさ(px)','100〜1500']],note:'十字に並ぶ正方形が数百個になるため、スクリプトで生成するのが確実です。'},
+'T-スクエア':{m:'script',p:[['Depth',6,'再帰の深さ','1〜8'],['Size',300,'最初の正方形の大きさ(px)','50〜800'],['Opacity',30,'1枚ごとの不透明度(%)','5〜100']],note:'重なる正方形が数千枚になるため、スクリプトで生成するのが確実です。不透明度を下げると重なりの濃淡が出ます。'},
+'カントール集合':{m:'script',p:[['Depth',6,'段数','1〜9'],['Width',800,'横幅(px)','100〜1800'],['BarHeight',30,'棒の太さ(px)','2〜100'],['Gap',80,'段の間隔(px)','10〜200']],note:'段ごとに棒が倍に増えるため、スクリプトで矩形を生成するのが確実です。'},
+'ヒルベルト曲線':{m:'expr',code:LX('A',{A:'+BF-AFA-FB+',B:'-AF+BFB+FA-'},5,90,0,0,18)},
+'ペアノ曲線':{m:'expr',code:LX('X',{X:'XFYFX+F+YFXFY-F-XFYFX',Y:'YFXFY-F-XFYFX+F+YFXFY'},3,90,0,0,22)},
+'ムーア曲線':{m:'expr',code:LX('LFL+F+LFL',{L:'-RF+LFL+FR-',R:'+LF-RFR-FL+'},4,90,0,1,18)},
+'シェルピンスキー曲線':{m:'expr',code:LX('F--XF--F--XF',{X:'XF+G+XF--F--XF+G+X'},4,45,0,1,10)},
+'ゴスパー曲線':{m:'expr',code:LX('F',{F:'F-G--G+F++FF+G-',G:'+F-FF--F-G++G+F'},4,60,0,0,10)},
+'Zオーダー曲線':{m:'expr',code:HD([['Level',4,'分割の段数(4なら16×16)'],['Size',600,'全体の大きさ(px)']],'self',PATH)+`
+var L = Math.round(Level), N = Math.pow(4, L), g = Math.pow(2, L), pts = [];
+for (var k = 0; k < N; k++) {
+  var x = 0, y = 0;
+  for (var b = 0; b < L; b++) {
+    x += (Math.floor(k / Math.pow(2, 2 * b)) % 2) * Math.pow(2, b);
+    y += (Math.floor(k / Math.pow(2, 2 * b + 1)) % 2) * Math.pow(2, b);
+  }
+  pts.push([(x / (g - 1) - 0.5) * Size, (y / (g - 1) - 0.5) * Size]);
+}
+createPath(pts, [], [], false);`},
+'L-system(植物)':{m:'script',p:[['Iterations',6,'再帰の世代','1〜7'],['Angle',25,'枝の角度(度)','5〜60'],['Length',4,'1歩の長さ(px)','1〜20']],note:'枝分かれ([ ])があるため、1本のパスでは描けません。スクリプトで枝ごとのパスを生成するのが確実です。成長アニメは、枝ごとのトリムパスを世代順に遅らせると作れます。'},
+'フラクタルツリー':{m:'expr',code:HD([['Depth',10,'枝分かれの回数'],['Angle',24,'分岐角度(度)。揺らすと風になびく'],['Ratio',0.72,'枝が短くなる比率'],['Length',120,'幹の長さ(px)']],'self',PATH,'枝を「行って戻る」一筆書きにして、1本のパスで木全体を描く\n原点が幹の根元になる')+`
+var D = Math.round(Depth), ang = Angle * Math.PI / 180, pts = [[0, 0]];
+function br(x, y, len, a, d) {
+  var x2 = x + len * Math.cos(a), y2 = y + len * Math.sin(a);
+  pts.push([x2, y2]);
+  if (d > 1) { br(x2, y2, len * Ratio, a - ang, d - 1); br(x2, y2, len * Ratio, a + ang, d - 1); }
+  pts.push([x, y]);
+}
+br(0, 0, Length, -Math.PI / 2, D);
+createPath(pts, [], [], false);`},
+'ピタゴラスの木':{m:'script',p:[['Depth',10,'再帰の深さ','1〜12'],['Angle',45,'直角三角形の角度(度)','15〜75'],['Size',80,'根元の正方形(px)','20〜200']],note:'正方形が数千個に増え、それぞれ塗りが必要なため、スクリプトで生成するのが確実です。'},
+'非対称ピタゴラスの木':{m:'script',p:[['Depth',10,'再帰の深さ','1〜12'],['Angle',33,'直角三角形の角度(度)。45以外で非対称','15〜75'],['Size',80,'根元の正方形(px)','20〜200']],note:'正方形が数千個に増え、それぞれ塗りが必要なため、スクリプトで生成するのが確実です。'},
+'H-ツリー':{m:'expr',code:HD([['Depth',10,'再帰の深さ'],['Size',400,'最初の横線の長さ(px)']],'self',PATH,'線を「行って戻る」一筆書きにして、1本のパスで全体を描く')+`
+var D = Math.round(Depth), pts = [[0, 0]];
+function h(x, y, l, hz, d) {
+  if (d <= 0) return;
+  var ax = hz ? x - l / 2 : x, ay = hz ? y : y - l / 2, bx = hz ? x + l / 2 : x, by = hz ? y : y + l / 2;
+  pts.push([ax, ay]); h(ax, ay, l / Math.SQRT2, !hz, d - 1); pts.push([x, y]);
+  pts.push([bx, by]); h(bx, by, l / Math.SQRT2, !hz, d - 1); pts.push([x, y]);
+}
+h(0, 0, Size, true, D);
+createPath(pts, [], [], false);`},
+'コラッツの木':{m:'script',p:[['Count',1200,'描く数の個数','100〜5000'],['EvenAngle',8,'偶数のとき曲げる角度(度)','0〜20'],['OddAngle',-17,'奇数のとき曲げる角度(度)','-30〜0'],['Step',6,'1歩の長さ(px)','1〜20'],['Opacity',12,'線の不透明度(%)','2〜100']],note:'数ごとに別々の線が数千本になるため、スクリプトで生成するのが確実です。線を重ねて不透明度を下げると、束の濃淡が出ます。'},
+'アポロニウスのギャスケット':{m:'script',p:[['MinRadius',2,'これより小さい円は作らない(px)','1〜30'],['Size',500,'外側の円の半径(px)','100〜1000']],note:'円が数千個になるため、スクリプトで楕円のシェイプを一括生成するのが確実です。円の位置と大きさは「デカルトの円定理」で計算します。'},
+'フォードの円':{m:'script',p:[['MaxQ',28,'分母の上限(円の細かさ)','1〜60'],['Width',1000,'横幅(px)','200〜1800']],note:'円が数百個になるため、スクリプトで生成するのが確実です。'},
+'シュタイナーの円鎖':{m:'script',p:[['Count',8,'リングに並ぶ円の数','3〜20'],['Levels',2,'内側に入れ子にする段数','0〜4'],['Rotation',0,'リングの回転(度)。動かすと鎖が回る','0〜360'],['Size',450,'外側の円の半径(px)','100〜1000']],note:'1段だけなら、楕円1つにリピーター(コピー数=円の数、回転=360÷円の数)でも作れます。入れ子にする場合はスクリプトで生成するのが確実です。'},
+'サークルパッキング':{m:'script',p:[['Count',500,'円の最大数','10〜3000'],['MaxRadius',70,'最大半径(px)','5〜300'],['MinRadius',3,'最小半径(px)','1〜50'],['Gap',3,'円どうしの隙間(px)','0〜20'],['Seed',7,'乱数シード','0〜9999']],note:'円の配置は乱数で試行錯誤して決めるため、スクリプトで計算して楕円を生成するのが確実です。'},
+'スピログラフ':{m:'expr',code:ROLL(8,5,6,25,false)},
+'エピサイクロイド':{m:'expr',code:ROLL(5,1,1,50,true)},
+'カージオイド':{m:'expr',code:ROLL(1,1,1,100,true)},
+'ネフロイド':{m:'expr',code:ROLL(2,1,1,80,true)},
+'デルトイド':{m:'expr',code:ROLL(3,1,1,100,false)},
+'アステロイド':{m:'expr',code:ROLL(4,1,1,80,false)},
+'マウラーのバラ':{m:'expr',code:HD([['N',6,'花びらの係数'],['D',71,'点を結ぶ角度の間隔(度)。動かすと網目が変化'],['Size',300,'大きさ(px)']],'self',PATH)+`
+var pts = [];
+for (var k = 0; k <= 360; k++) {
+  var t = k * D * Math.PI / 180, r = Math.sin(N * t);
+  pts.push([r * Math.cos(t) * Size, r * Math.sin(t) * Size]);
+}
+createPath(pts, [], [], false);`},
+'ギョーシェ模様':{m:'index',code:HD([['Points',1200,'1本あたりの点の数'],['Radius',300,'基本の半径(px)'],['Waves',7,'波の数'],['Amp',0.16,'波の大きさ'],['Shift',0.09,'1本ごとの位相のずれ'],['Phase',0,'全体の位相。動かすと帯がうねる']],'ctrl','シェイプレイヤーのパス(このレイヤーを30〜40個複製する)','index で1本ごとに位相をずらし、重ねて帯にする')+`
+var j = index - 2; // CTRLを一番上に置いた場合
+var n = Math.round(Points), pts = [];
+for (var i = 0; i < n; i++) {
+  var t = i / n * Math.PI * 2;
+  var r = Radius * (1 + Amp * Math.sin(Waves * t + j * Shift + Phase) + 0.06 * Math.sin(Waves * 3 * t - j * Shift * 0.5) + j * 0.005);
+  pts.push([r * Math.cos(t), r * Math.sin(t)]);
+}
+createPath(pts, [], [], true);`},
+'リサジュー曲線':{m:'expr',code:PX({c:[['Points',2000,'点の数'],['Size',250,'大きさ(px)'],['A',5,'横方向の周波数'],['B',4,'縦方向の周波数'],['Phase',90,'位相差(度)。動かすと形が回転して見える']],b:'var x = Math.sin(A * t + Phase * Math.PI / 180), y = Math.sin(B * t);'})},
+'3Dリサジュー':{m:'expr',code:PX({c:[['Points',3000,'点の数'],['Size',250,'大きさ(px)'],['A',3,'X方向の周波数'],['B',4,'Y方向の周波数'],['C',7,'Z方向の周波数'],['RotY',40,'Y軸回転(度)。time*30 などで回転'],['Tilt',23,'前後の傾き(度)']],pre:'var ry = RotY * Math.PI / 180, tl = Tilt * Math.PI / 180;',b:'var X = Math.sin(A * t), Y = Math.sin(B * t + 0.6), Z = Math.sin(C * t);\nvar x = X * Math.cos(ry) + Z * Math.sin(ry), z1 = -X * Math.sin(ry) + Z * Math.cos(ry);\nvar y = Y * Math.cos(tl) - z1 * Math.sin(tl);'})},
+'ハーモノグラフ':{m:'expr',code:PX({c:[['Points',8000,'点の数'],['Size',130,'大きさ(px)'],['Duration',200,'描く長さ(振り子の時間)'],['Decay',0.006,'減衰の速さ'],['Phase',0,'位相(ラジアン)。動かすと模様が変化']],t1:'Duration',b:'var e = Math.exp(-Decay * t);\nvar x = e * (Math.sin(2.01 * t + Phase) + Math.sin(3 * t + 1.2)), y = e * (Math.sin(3.003 * t + 0.4) + Math.sin(2 * t + 2.1));'})},
+'二重振り子':{m:'expr',code:HD([['Theta1',125,'1本目の初期角度(度)'],['Theta2',150,'2本目の初期角度(度)'],['Length',150,'腕の長さ(px)'],['Speed',1,'シミュレーションの速さ']],'self',PATH,'毎フレーム、0秒から現在時刻までを計算し直して先端の軌跡を描く\n長い尺では重くなるので、必要なら最後にプリレンダーする')+`
+var g = 9.81, h = 1 / 240, steps = Math.floor(Math.max(0, time * Speed) / h);
+function acc(s) {
+  var a1 = s[0], a2 = s[1], w1 = s[2], w2 = s[3], dl = a1 - a2, den = 3 - Math.cos(2 * a1 - 2 * a2);
+  return [w1, w2,
+    (-3 * g * Math.sin(a1) - g * Math.sin(a1 - 2 * a2) - 2 * Math.sin(dl) * (w2 * w2 + w1 * w1 * Math.cos(dl))) / den,
+    (2 * Math.sin(dl) * (2 * w1 * w1 + 2 * g * Math.cos(a1) + w2 * w2 * Math.cos(dl))) / den];
+}
+function add(s, k, f) { return [s[0] + k[0] * f, s[1] + k[1] * f, s[2] + k[2] * f, s[3] + k[3] * f]; }
+var s = [Theta1 * Math.PI / 180, Theta2 * Math.PI / 180, 0, 0], pts = [];
+for (var i = 0; i <= steps; i++) {
+  pts.push([(Math.sin(s[0]) + Math.sin(s[1])) * Length, (Math.cos(s[0]) + Math.cos(s[1])) * Length]);
+  var k1 = acc(s), k2 = acc(add(s, k1, h / 2)), k3 = acc(add(s, k2, h / 2)), k4 = acc(add(s, k3, h));
+  for (var j = 0; j < 4; j++) s[j] += h / 6 * (k1[j] + 2 * k2[j] + 2 * k3[j] + k4[j]);
+}
+if (pts.length < 2) pts.push(pts[0]);
+createPath(pts, [], [], false);`},
+'バラ曲線':{m:'expr',code:PX({c:[['Points',4000,'点の数'],['Size',280,'大きさ(px)'],['N',7,'係数の分子'],['D',4,'係数の分母(整数)']],t1:'Math.PI * 2 * Math.round(D)',b:'var r = Math.cos(N / D * t), x = r * Math.cos(t), y = r * Math.sin(t);'})},
+'スーパーフォーミュラ':{m:'expr',code:PX({c:[['Points',1500,'点の数'],['Size',200,'大きさ(px)'],['M',6,'対称の数'],['N1',1,'全体の膨らみ'],['N2',1.7,'形の指数1。動かすとモーフィング'],['N3',1.7,'形の指数2']],b:'var r = Math.pow(Math.pow(Math.abs(Math.cos(M * t / 4)), N2) + Math.pow(Math.abs(Math.sin(M * t / 4)), N3), -1 / N1);\nvar x = r * Math.cos(t), y = r * Math.sin(t);',cl:true})},
+'スーパー楕円':{m:'expr',code:PX({c:[['Points',400,'点の数'],['Size',250,'大きさ(px)'],['N',4,'指数(1未満で星形、2で円、大きいほど四角)']],pre:'function sg(v) { return v < 0 ? -1 : 1; }',b:'var ct = Math.cos(t), st = Math.sin(t);\nvar x = sg(ct) * Math.pow(Math.abs(ct), 2 / N), y = sg(st) * Math.pow(Math.abs(st), 2 / N);',cl:true})},
+'バタフライ曲線':{m:'expr',code:PX({c:[['Points',8000,'点の数'],['Size',60,'大きさ(倍率)'],['Turns',12,'周回数(多いほど線が重なる)']],t1:'Math.PI * 2 * Turns',b:'var r = Math.exp(Math.sin(t)) - 2 * Math.cos(4 * t) + Math.pow(Math.sin((2 * t - Math.PI) / 24), 5);\nvar x = Math.sin(t) * r, y = -Math.cos(t) * r;'})},
+'ハート曲線':{m:'expr',code:PX({c:[['Points',400,'点の数'],['Size',12,'大きさ(倍率)'],['Beat',0,'鼓動の大きさ(%)。キーフレームで脈打たせる']],pre:'var k = 1 + Beat / 100;',b:'var x = 16 * Math.pow(Math.sin(t), 3) * k;\nvar y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) * k;',cl:true})},
+'トーラス結び目':{m:'expr',code:PX({c:[['Points',3000,'点の数'],['Size',80,'大きさ(倍率)'],['P',2,'ドーナツの穴を回る回数'],['Q',5,'チューブを巻く回数'],['RotY',0,'Y軸回転(度)'],['Tilt',50,'前後の傾き(度)']],pre:'var ry = RotY * Math.PI / 180, tl = Tilt * Math.PI / 180;',b:'var r = Math.cos(Q * t) + 2.2, X = r * Math.cos(P * t), Z = r * Math.sin(P * t), Y = -Math.sin(Q * t);\nvar x = X * Math.cos(ry) + Z * Math.sin(ry), z1 = -X * Math.sin(ry) + Z * Math.cos(ry);\nvar y = Y * Math.cos(tl) - z1 * Math.sin(tl);',cl:true})},
+'フィロタキシス':{m:'index',code:HD([['Angle',137.508,'配置角度(度)。黄金角から少しずらすと渦の本数が変わる'],['Spacing',12,'点の間隔(px)']],'ctrl','小さな円のシェイプレイヤーの「位置」(このレイヤーを必要な数だけ複製する)','CTRLを一番上に置く。点の数=複製したレイヤーの数')+`
+var i = index - 2;
+var r = Spacing * Math.sqrt(i), a = i * Angle * Math.PI / 180;
+[thisComp.width / 2 + r * Math.cos(a), thisComp.height / 2 + r * Math.sin(a)];`},
+'対数らせん(黄金)':{m:'expr',code:PX({c:[['Points',3000,'点の数'],['Size',3,'大きさ(倍率)'],['Turns',2.5,'巻き数'],['Growth',1.618,'90度ごとに広がる比率(黄金比=1.618)']],pre:'var b = Math.log(Growth) / (Math.PI / 2);',t1:'Math.PI * 2 * Turns',b:'var r = Math.exp(b * t), x = r * Math.cos(t), y = r * Math.sin(t);'})},
+'アルキメデスらせん':{m:'expr',code:PX({c:[['Points',3000,'点の数'],['Size',8,'巻きの間隔(倍率)'],['Turns',5,'巻き数']],t1:'Math.PI * 2 * Turns',b:'var x = t * Math.cos(t), y = t * Math.sin(t);'})},
+'フェルマーらせん':{m:'expr',code:PX({c:[['Points',8000,'点の数'],['Size',30,'大きさ(倍率)'],['Turns',25,'巻き数']],t0:'-Math.PI * 2 * Turns',t1:'Math.PI * 2 * Turns',b:'var r = (t < 0 ? -1 : 1) * Math.sqrt(Math.abs(t)), a = Math.abs(t);\nvar x = r * Math.cos(a), y = r * Math.sin(a);'})},
+'リチュウス':{m:'expr',code:PX({c:[['Points',6000,'点の数'],['Size',150,'大きさ(倍率)'],['Start',0.25,'開始角度(ラジアン)。尾の長さ'],['End',80,'終了角度(ラジアン)。渦の細かさ']],t0:'Start',t1:'End',b:'var r = 1 / Math.sqrt(t), x = r * Math.cos(t), y = r * Math.sin(t);'})},
+'オイラーらせん':{m:'expr',code:HD([['Points',5000,'点の数'],['Size',300,'大きさ(倍率)'],['Len',5.5,'曲線の長さ(大きいほど渦が深い)']],'self',PATH,'曲率が長さに比例して増える曲線を数値積分で描く')+`
+var n = Math.round(Points), h = 2 * Len / n, x = 0, y = 0, pts = [[0, 0]];
+for (var i = 0; i < n; i++) {
+  var s = -Len + h * (i + 0.5);
+  x += Math.cos(s * s) * h; y += Math.sin(s * s) * h;
+  pts.push([x, y]);
+}
+for (var i = 0; i < pts.length; i++) pts[i] = [(pts[i][0] - x / 2) * Size, (pts[i][1] - y / 2) * Size];
+createPath(pts, [], [], false);`},
+'掛け算の円 ×2':{m:'expr',code:HD([['Count',200,'円周上の点の数'],['K',2,'掛ける数。動かすと形が変化'],['Radius',300,'半径(px)']],'self',PATH,'点 i から点 i×K へ線を引いて戻る、を繰り返して1本のパスで描く')+`
+var N = Math.round(Count), pts = [];
+function P(a) { return [Radius * Math.cos(a + Math.PI), Radius * Math.sin(a + Math.PI)]; }
+for (var i = 0; i <= N; i++) {
+  var a = i / N * Math.PI * 2, b = i * K / N * Math.PI * 2;
+  pts.push(P(a));
+  if (i < N) { pts.push(P(b)); pts.push(P(a)); }
+}
+createPath(pts, [], [], false);`},
+'掛け算の円 ×37':{m:'expr',ref:'掛け算の円 ×2',note2:'「掛け算の円 ×2」と同じエクスプレッションで、Kを37にします。'},
+'ストリングアート':{m:'expr',code:HD([['Lines',30,'1つの角あたりの糸の本数'],['Size',600,'正方形の大きさ(px)'],['Corner',0,'どの角か(0〜3)。パスを4つ作り0〜3を設定']],'self',PATH,'角をはさむ2辺の点を結ぶ直線を、行って戻る一筆書きにする')+`
+var n = Math.round(Lines), h = Size / 2, C = [[-h, -h], [h, -h], [h, h], [-h, h]];
+var k = Math.round(Corner) % 4, c0 = C[k], cp = C[(k + 3) % 4], cn = C[(k + 1) % 4], pts = [];
+for (var i = 0; i <= n; i++) {
+  var u = i / n;
+  var A = [c0[0] + (cp[0] - c0[0]) * (1 - u), c0[1] + (cp[1] - c0[1]) * (1 - u)];
+  var B = [c0[0] + (cn[0] - c0[0]) * u, c0[1] + (cn[1] - c0[1]) * u];
+  pts.push(A); pts.push(B); pts.push(A);
+}
+createPath(pts, [], [], false);`},
+'追跡曲線(4匹の虫)':{m:'expr',code:HD([['Bugs',4,'虫の数(多角形の頂点数)'],['Count',70,'描く段数'],['Step',0.07,'1段で進む割合'],['Size',400,'大きさ(px)']],'self',PATH,'多角形を少しずつ回転・縮小させて入れ子にし、1本のパスでつなぐ')+`
+var N = Math.round(Bugs), K = Math.round(Count), P = [], pts = [];
+for (var i = 0; i < N; i++) { var a = -Math.PI / 2 + Math.PI / N + i * 2 * Math.PI / N; P.push([Size * Math.cos(a), Size * Math.sin(a)]); }
+for (var k = 0; k < K; k++) {
+  for (var i = 0; i < N; i++) pts.push(P[i]);
+  pts.push(P[0]);
+  var Q = [];
+  for (var i = 0; i < N; i++) { var q = P[(i + 1) % N]; Q.push([P[i][0] + (q[0] - P[i][0]) * Step, P[i][1] + (q[1] - P[i][1]) * Step]); }
+  P = Q;
+}
+createPath(pts, [], [], false);`},
+'スターポリゴン {17/7}':{m:'expr',code:HD([['N',17,'頂点の数'],['Skip',7,'いくつ飛ばして結ぶか'],['Size',300,'半径(px)']],'self',PATH)+`
+var n = Math.round(N), m = Math.round(Skip), pts = [];
+for (var k = 0; k < n; k++) {
+  var a = ((k * m) % n) / n * Math.PI * 2 - Math.PI / 2;
+  pts.push([Size * Math.cos(a), Size * Math.sin(a)]);
+}
+createPath(pts, [], [], true);`},
+'フーリエ級数(エピサイクル)':{m:'expr',code:PX({c:[['Points',1500,'点の数'],['Size',140,'大きさ(倍率)'],['Terms',5,'使う円の数(1〜5)']],pre:'var F = [[1, 1], [-2, 0.5], [3, 0.3], [-5, 0.18], [7, 0.1]]; // [回転の速さ, 半径]\nvar m = Math.min(F.length, Math.round(Terms));',b:'var x = 0, y = 0;\nfor (var k = 0; k < m; k++) { x += F[k][1] * Math.cos(F[k][0] * t); y += F[k][1] * Math.sin(F[k][0] * t); }',cl:true,x:'回転する円そのものは、楕円レイヤーを円の数だけ作り、それぞれの位置を前の円の先端に合わせて回転させる'})},
+'矩形波のフーリエ合成':{m:'expr',code:HD([['Points',1500,'点の数'],['Harmonics',19,'重ねる最大の倍音(奇数)'],['Cycles',2,'波の数'],['Width',900,'横幅(px)'],['Height',150,'振幅(px)']],'self',PATH)+`
+var n = Math.round(Points), pts = [];
+for (var i = 0; i <= n; i++) {
+  var t = i / n * Math.PI * 2 * Cycles, y = 0;
+  for (var k = 1; k <= Harmonics; k += 2) y += Math.sin(k * t) / k;
+  y *= 4 / Math.PI;
+  pts.push([(i / n - 0.5) * Width, -y * Height]);
+}
+createPath(pts, [], [], false);`},
+'クラドニ図形':{m:'ext',p:[['N',2,'振動モードの数1','1〜9'],['M',5,'振動モードの数2','1〜9'],['Threshold',0.07,'砂が集まる線の太さ','0.01〜0.2'],['Mix',0,'2つ目のモードとの混ぜ具合(0〜1)。連番で動かすと形が変化','0〜1']],note:'画面の全ピクセルで振動の式を計算するため、外部で連番を作るのが確実です。式は cos(nπx)cos(mπy) − cos(mπx)cos(nπy) がほぼ0になる場所に点を打ちます。'},
+'ローレンツ・アトラクター':{m:'expr',code:ODEX([['Sigma',10,'σ'],['Rho',28,'ρ'],['Beta',2.667,'β']],'[0.1, 0, 0]','0.005','var dx = Sigma * (y - x), dy = x * (Rho - z) - y, dz = x * y - Beta * z;','微分方程式をオイラー法で解いて軌道を描く\n線を描く動きはトリムパス、立体回転は RotY に time*20 など',8)},
+'クリフォード・アトラクター':{m:'ext',p:[['A',-1.4,'係数a','-3〜3'],['B',1.6,'係数b','-3〜3'],['C',1,'係数c','-3〜3'],['D',0.7,'係数d','-3〜3'],['Points',3000000,'打つ点の数','10万〜1000万']],note:'数百万の点を重ねて濃淡を出すため、外部で計算するのが確実です。点の密度を対数で明るさに変えると、煙のような質感になります。'},
+'de Jong アトラクター':{m:'ext',p:[['A',1.4,'係数a','-3〜3'],['B',-2.3,'係数b','-3〜3'],['C',2.4,'係数c','-3〜3'],['D',-2.1,'係数d','-3〜3'],['Points',3000000,'打つ点の数','10万〜1000万']],note:'数百万の点を重ねて濃淡を出すため、外部で計算するのが確実です。'},
+'レスラー・アトラクター':{m:'expr',code:ODEX([['A',0.2,'a'],['B',0.2,'b'],['C',5.7,'c']],'[1, 1, 0]','0.01','var dx = -y - z, dy = x + A * y, dz = B + z * (x - C);','微分方程式をオイラー法で解いて軌道を描く',14)},
+'Aizawa アトラクター':{m:'expr',code:ODEX([['A',0.95,'a'],['B',0.7,'b'],['C',0.6,'c'],['D',3.5,'d'],['E',0.25,'e'],['F',0.1,'f']],'[0.1, 0, 0]','0.01','var dx = (z - B) * x - D * y, dy = D * x + (z - B) * y;\n  var dz = C + A * z - z * z * z / 3 - (x * x + y * y) * (1 + E * z) + F * z * x * x * x;','微分方程式をオイラー法で解いて軌道を描く',150)},
+'エノン写像':{m:'ext',p:[['A',1.4,'係数a','1.0〜1.4'],['B',0.3,'係数b','0.1〜0.4'],['Points',1000000,'打つ点の数','1万〜500万']],note:'点の集まりで形が見えるタイプなので、外部で点を打って書き出すのが確実です。'},
+'池田写像':{m:'ext',p:[['U',0.9,'減衰の係数(0.86〜0.9あたりで渦になる)','0.6〜0.9'],['Points',2000000,'打つ点の数','10万〜500万']],note:'点の集まりで形が見えるタイプなので、外部で計算するのが確実です。uが0.9を超えると1点に収束して消えるので注意。'},
+'ティンカーベル写像':{m:'ext',p:[['A',0.9,'係数a','0.3〜0.9'],['B',-0.6013,'係数b','-0.7〜-0.5'],['C',2,'係数c','1.8〜2.2'],['D',0.5,'係数d','0.3〜0.6'],['Points',1000000,'打つ点の数','10万〜500万']],note:'点の集まりで形が見えるタイプなので、外部で計算するのが確実です。'},
+'標準写像':{m:'ext',p:[['K',0.97,'キック強度(大きいほどカオス)','0〜3'],['Orbits',150,'初期値の数','10〜500'],['Iterations',1000,'1つの初期値あたりの反復','100〜5000']],note:'多数の初期値から点を打つため、外部で計算するのが確実です。'},
+'ロジスティック写像の分岐図':{m:'ext',p:[['RMin',2.8,'rの最小値','0〜4'],['RMax',4,'rの最大値','0〜4'],['Columns',2000,'rの分割数(横の解像度)','200〜4000']],note:'rごとに数百回の反復を計算して点を打つため、外部で計算するのが確実です。'},
+'マンデルブロ集合':{m:'ext',p:[['CenterX',-0.743643887,'ズームの中心X','-2〜1'],['CenterY',0.131825904,'ズームの中心Y','-1.5〜1.5'],['ZoomStart',1,'最初の倍率','1〜'],['ZoomEnd',100000,'最後の倍率','1〜1e12'],['MaxIter',500,'反復回数の上限','50〜5000'],['Frames',300,'書き出すフレーム数','1〜3000']],note:'ピクセルごとに数百回の計算が必要なため、エクスプレッションでは不可能です。無限ズームはPythonで倍率を変えながら連番を書き出すのが確実です(深いズームは計算精度に注意)。'},
+'ジュリア集合':{m:'ext',p:[['CRe',-0.8,'定数cの実部。動かすと形が変化','-1〜1'],['CIm',0.156,'定数cの虚部','-1〜1'],['MaxIter',300,'反復回数の上限','50〜2000'],['Frames',240,'書き出すフレーム数(cを円周上で動かす)','1〜2000']],note:'ピクセルごとに反復計算が必要なため、外部で連番を作るのが確実です。'},
+'バーニングシップ':{m:'ext',p:[['CenterX',-1.762,'ズームの中心X','-2.5〜1.5'],['CenterY',-0.028,'ズームの中心Y','-2〜1'],['ZoomEnd',1000,'最後の倍率','1〜1e10'],['MaxIter',300,'反復回数の上限','50〜3000'],['Frames',240,'フレーム数','1〜3000']],note:'ピクセルごとに反復計算が必要なため、外部で連番を作るのが確実です。'},
+'ニュートン・フラクタル':{m:'ext',p:[['Degree',3,'多項式の次数(z^n − 1)。根の数=色の数','3〜8'],['MaxIter',40,'反復回数の上限','10〜200'],['Zoom',1,'倍率','1〜1000']],note:'ピクセルごとにニュートン法を計算するため、外部で連番を作るのが確実です。根ごとに別々の画像(マスク)として書き出すと、AE側で色を付けやすくなります。'},
+'等高線':{m:'ext',p:[['Levels',18,'等高線の本数','3〜60'],['Hills',5,'山と谷の数','1〜20'],['Speed',0.5,'山の動く速さ(連番の場合)','0〜3'],['Seed',1,'乱数シード','0〜9999']],note:'AEだけで近い見た目を作るなら、フラクタルノイズ → ポスタリゼーション → 輪郭検出 を重ねる方法があります。正確な線をベクターで欲しい場合は、マーチングスクエア法で等高線を計算してシェイプとして読み込むのが確実です。'},
+'ウラムのらせん':{m:'script',p:[['GridSize',101,'1辺のマス数(奇数)','11〜301'],['Cell',8,'マスの大きさ(px)','2〜30'],['DotScale',0.9,'点の大きさの比率','0.2〜1']],note:'素数の位置に数千個の点を置くため、スクリプトで生成するのが確実です。'},
+'レカマン数列':{m:'expr',code:HD([['Terms',65,'項の数'],['Scale',6,'数1あたりの幅(px)']],'self',PATH,'各項のあいだを半円で結び、上下交互に描く')+`
+var N = Math.round(Terms), a = [0], seen = {0: true}, mx = 0, pts = [];
+for (var n = 1; n < N; n++) {
+  var p = a[n - 1] - n, v = (p > 0 && !seen[p]) ? p : a[n - 1] + n;
+  a.push(v); seen[v] = true; mx = Math.max(mx, v);
+}
+for (var n = 1; n < a.length; n++) {
+  var c = (a[n - 1] + a[n]) / 2, r = Math.abs(a[n] - a[n - 1]) / 2, dir = a[n] > a[n - 1] ? 1 : -1, up = (n % 2) ? -1 : 1;
+  for (var k = 0; k <= 24; k++) {
+    var th = Math.PI * k / 24;
+    pts.push([(c - dir * r * Math.cos(th) - mx / 2) * Scale, up * r * Math.sin(th) * Scale]);
+  }
+}
+createPath(pts, [], [], false);`},
+'パスカルの三角形 mod 5':{m:'script',p:[['Rows',50,'段数','5〜200'],['Mod',5,'割る数(余りで模様が変わる)','2〜12'],['Cell',12,'マスの大きさ(px)','2〜40']],note:'マスが千個以上になり、余りに応じて不透明度を変えるため、スクリプトで生成するのが確実です。'}
+};
+
+function exprParams(code){const re=/^\/\/   (\w+) = ([^\s]+)  … (.+)$/gm,out=[];let m;while(m=re.exec(code))out.push([m[1],m[2],m[3],'']);return out}
+
+
+const TR=[
+// セクション
+['置き換えで描く線のフラクタル','Line fractals by substitution','以替換規則繪製的線條碎形'],
+['平面を埋める曲線','Space-filling curves','填滿平面的曲線'],
+['分岐する木','Branching trees','分枝的樹'],
+['円の再帰と配置','Recursive circles and packing','圓的遞迴與排列'],
+['円が転がって描く曲線','Roulettes (rolling circles)','滾動圓畫出的曲線'],
+['パラメトリック曲線','Parametric curves','參數曲線'],
+['らせん','Spirals','螺線'],
+['直線の重なりで曲線を作る','Curves from straight lines','以直線交織出曲線'],
+['回転・周波数・振動','Rotation, frequency and vibration','旋轉・頻率・振動'],
+['カオス・複素力学系','Chaos and complex dynamics','混沌與複變動力系統'],
+['数・数列・場','Numbers, sequences and fields','數・數列・場'],
+// 1
+['コッホ曲線','Koch curve','科赫曲線'],['線分の中央が三角に盛り上がるのを繰り返したギザギザ線','A jagged line made by repeatedly raising a triangle in the middle of each segment','每段線中央反覆隆起三角形而成的鋸齒線'],['波形・地形の輪郭、成長アニメ','Waveforms, terrain outlines, growth animation','波形、地形輪廓、成長動畫'],
+['コッホ雪片','Koch snowflake','科赫雪花'],['三角形の各辺をコッホ曲線にした雪の結晶形','A snowflake made by turning each side of a triangle into a Koch curve','把三角形每一邊變成科赫曲線的雪花結晶'],['雪・氷の演出、冬のタイトル','Snow and ice effects, winter titles','雪與冰的演出、冬季片頭'],
+['チェザロ曲線','Cesàro curve','切薩羅曲線'],['コッホより鋭い角度で折れる、内側に食い込む線','Folds at a sharper angle than Koch, biting inward','以比科赫更尖銳的角度折返、向內咬合的線'],['鋭いエッジの装飾、ひび割れ','Sharp-edged ornaments, cracks','尖銳邊緣的裝飾、裂痕'],
+['2次コッホ島','Quadratic Koch island','二次科赫島'],['直角の凹凸が入れ子になった島のような閉曲線','An island-like closed curve of nested right-angle bumps','直角凹凸層層巢狀、像島嶼的封閉曲線'],['地図・島の表現、テック系フレーム','Maps and islands, tech-style frames','地圖與島嶼、科技感外框'],
+['ミンコフスキー・ソーセージ','Minkowski sausage','閔可夫斯基香腸'],['直角の凸凹が連なる、細長い入れ子状の線','A long nested line of right-angle bumps','直角凹凸相連、細長的巢狀線條'],['回路・配線風のライン、ボーダー','Circuit-like lines, borders','電路配線風格的線條、邊框'],
+['ドラゴン曲線','Dragon curve','龍形曲線'],['一筆書きで折り畳まれた、竜のような塊','A single folded line that forms a dragon-like mass','一筆畫摺疊而成、像龍一樣的團塊'],['トリムパスで「走る線」、パターン背景','“Running lines” with Trim Paths, pattern backgrounds','用修剪路徑做「奔跑的線」、圖樣背景'],
+['レヴィC曲線','Lévy C curve','萊維C形曲線'],['左右対称の、アーチ状に房が並ぶ形','A symmetric arch lined with tufts','左右對稱、拱形上排列著簇狀的形狀'],['装飾フレーム、紋章風モチーフ','Decorative frames, crest-like motifs','裝飾外框、徽章風格圖案'],
+['シェルピンスキーの三角形','Sierpiński triangle','謝爾賓斯基三角形'],['三角形の中に抜き穴が再帰的に増える','Holes multiply recursively inside a triangle','三角形中的鏤空遞迴地增加'],['テック背景、ズームのループ','Tech backgrounds, zoom loops','科技背景、縮放循環'],
+['シェルピンスキーの矢じり','Sierpiński arrowhead','謝爾賓斯基箭頭曲線'],['一本の線が折れ曲がってシェルピンスキー三角形を描く','A single bending line that traces the Sierpiński triangle','一條線曲折地描出謝爾賓斯基三角形'],['描画アニメ、迷路的なライン','Draw-on animation, maze-like lines','描繪動畫、迷宮般的線條'],
+['シェルピンスキーのカーペット','Sierpiński carpet','謝爾賓斯基地毯'],['正方形の中央が抜けるのを繰り返した格子','A grid made by repeatedly removing the center of squares','反覆挖空正方形中央而成的格子'],['グリッチ素材、無限ズーム','Glitch elements, infinite zoom','故障風素材、無限縮放'],
+['ヴィチェック・フラクタル','Vicsek fractal','維切克碎形'],['十字が十字に分かれていく雪の結晶状の形','A snowflake-like cross that splits into crosses','十字再分裂成十字的雪花結晶狀'],['結晶・アイコン、ロゴリビール','Crystals, icons, logo reveals','結晶、圖示、標誌顯現'],
+['T-スクエア','T-square fractal','T方形碎形'],['正方形が角ごとに小さく重なる、網目状の模様','A mesh of squares overlapping smaller at every corner','正方形在每個角落縮小重疊的網狀圖樣'],['テクスチャ、レイヤー重ねの背景','Textures, layered backgrounds','材質、圖層疊加背景'],
+['カントール集合','Cantor set','康托爾集合'],['横棒が段ごとに3等分され、中央が抜けていく','Bars split into thirds row by row, losing their middles','橫條每一層三等分、拿掉中段'],['バーコード風、データの演出、分割トランジション','Barcode looks, data visuals, split transitions','條碼風格、數據演出、分割轉場'],
+['ヒルベルト曲線','Hilbert curve','希爾伯特曲線'],['直角に曲がり続けて正方形を埋める一筆書き','A single line that keeps turning at right angles to fill a square','不斷直角轉彎、一筆畫填滿正方形'],['回路・基板、データ転送の演出','Circuit boards, data-transfer visuals','電路板、資料傳輸演出'],
+['ペアノ曲線','Peano curve','皮亞諾曲線'],['蛇行しながら3×3単位で面を埋める線','A meandering line that fills the plane in 3×3 blocks','以3×3為單位蜿蜒填滿平面的線'],['迷路風背景、トリムパスの描画','Maze-like backgrounds, Trim Paths draw-ons','迷宮風背景、修剪路徑描繪'],
+['ムーア曲線','Moore curve','摩爾曲線'],['ヒルベルト曲線をループ状に閉じた形','A Hilbert curve closed into a loop','把希爾伯特曲線閉合成迴圈的形狀'],['ループ素材、ネオンサイン風','Loop elements, neon-sign looks','循環素材、霓虹招牌風格'],
+['シェルピンスキー曲線','Sierpiński curve','謝爾賓斯基曲線'],['斜め45°で埋める、菱形の閉曲線','A closed diamond-shaped curve that fills space at 45°','以45°斜向填滿的菱形封閉曲線'],['ダイヤ型の装飾、ロゴの枠','Diamond ornaments, logo frames','菱形裝飾、標誌外框'],
+['ゴスパー曲線','Gosper curve','高斯帕曲線'],['六角形ベースで、雪片のような輪郭に面を埋める','A hexagon-based curve filling a snowflake-like outline','以六角形為基礎、填滿雪花般輪廓的曲線'],['有機的なテクスチャ、領域の塗りつぶし','Organic textures, area fills','有機材質、區域填色'],
+['Zオーダー曲線','Z-order curve','Z階曲線'],['Z字が再帰的に並ぶ、ジグザグの格子','A zigzag grid of recursively nested Z shapes','Z字遞迴排列的鋸齒格子'],['デジタル・データ処理の表現、走査演出','Digital data-processing visuals, scanning effects','數位資料處理的表現、掃描演出'],
+['L-system(植物)','L-system plant','L系統(植物)'],['文法ルールで育つ、自然な草木','Natural plants grown from grammar rules','依文法規則生長的自然草木'],['植物の成長アニメ、エコ・自然系','Plant growth animation, eco and nature themes','植物成長動畫、環保與自然主題'],
+['フラクタルツリー','Fractal tree','碎形樹'],['同じ角度で二股に分かれ続ける樹形','A tree that keeps forking at the same angle','以相同角度持續分岔的樹形'],['成長アニメ、家系図・分岐の比喩','Growth animation, family trees and branching metaphors','成長動畫、族譜與分岔的比喻'],
+['ピタゴラスの木','Pythagoras tree','畢氏樹'],['正方形と直角三角形が積み上がるブロッコリー状の木','A broccoli-like tree of stacked squares and right triangles','正方形與直角三角形堆疊成的花椰菜狀樹'],['教育系、幾何学的な成長演出','Education, geometric growth effects','教育類、幾何成長演出'],
+['非対称ピタゴラスの木','Asymmetric Pythagoras tree','非對稱畢氏樹'],['片側に傾いて巻き込むピタゴラスの木','A Pythagoras tree that leans and curls to one side','傾向一側並捲曲的畢氏樹'],['風に揺れる表現、ロゴの装飾','Swaying-in-the-wind effects, logo ornaments','隨風搖曳的表現、標誌裝飾'],
+['H-ツリー','H-tree','H樹'],['H字が再帰的に並ぶ、整然とした格子','An orderly grid of recursively nested H shapes','H字遞迴排列的整齊格子'],['回路・ネットワーク、テック背景','Circuits and networks, tech backgrounds','電路與網路、科技背景'],
+['コラッツの木','Collatz tree','考拉茲樹'],['コラッツ数列を曲げて描いた、海藻のようにしなる束','A seaweed-like bundle drawn by bending Collatz sequences','把考拉茲數列彎曲繪製、像海藻般搖曳的線束'],['アート系MV、有機的なライン','Artsy music videos, organic lines','藝術風MV、有機線條'],
+['アポロニウスのギャスケット','Apollonian gasket','阿波羅尼斯墊片'],['円の隙間に接する円を詰め続けた形','Circles endlessly packed into the gaps between tangent circles','在圓與圓的縫隙中不斷塞入相切的圓'],['泡・細胞、無限ズーム','Bubbles and cells, infinite zoom','泡泡與細胞、無限縮放'],
+['フォードの円','Ford circles','福特圓'],['直線の上に大小の円が接して並ぶ','Circles of many sizes touching along a line','大小不一的圓相切排列在直線上'],['数学系の解説、ミニマル背景','Math explainers, minimal backgrounds','數學解說、極簡背景'],
+['シュタイナーの円鎖','Steiner chain','斯坦納圓鏈'],['2つの円の間に円がリング状に並ぶ','A ring of circles between two circles','兩個圓之間排成環狀的圓'],['回転ループ素材、メカニカルなUI','Rotating loops, mechanical UI','旋轉循環素材、機械風UI'],
+['サークルパッキング','Circle packing','圓形填充'],['大小の円が隙間なく詰まった配置','Circles of many sizes packed tightly together','大小圓緊密塞滿的排列'],['インフォグラフィック、ポップな背景','Infographics, playful backgrounds','資訊圖表、活潑背景'],
+['スピログラフ','Spirograph','萬花尺(繁花曲線)'],['花のような対称の幾何学模様','A flower-like symmetric geometric pattern','如花朵般對稱的幾何圖樣'],['オープニング、和柄・紋章風','Openings, Japanese patterns and crests','片頭、和風紋樣與徽章風'],
+['エピサイクロイド','Epicycloid','外擺線'],['円の外側を転がる円が描く花びら状の線','Petal-like lines drawn by a circle rolling around the outside of another','圓在另一圓外側滾動所畫出的花瓣狀線條'],['ロゴ枠、歯車の表現','Logo frames, gear motifs','標誌外框、齒輪表現'],
+['カージオイド','Cardioid','心臟線'],['ハート型に近い、くぼみが1つの曲線','A near-heart shape with one dent','接近心形、有一個凹陷的曲線'],['光の反射(コースティクス)、ロマンチックな演出','Light caustics, romantic effects','光的反射(焦散)、浪漫演出'],
+['ネフロイド','Nephroid','腎臟線'],['くぼみが2つの、腎臓のような形','A kidney-like shape with two dents','有兩個凹陷、像腎臟的形狀'],['コーヒーカップの光の模様、ミニマル装飾','Light patterns in a coffee cup, minimal ornaments','咖啡杯中的光紋、極簡裝飾'],
+['デルトイド','Deltoid','三尖瓣線'],['3つの尖りを持つ、凹んだ三角形','A concave triangle with three cusps','有三個尖角的內凹三角形'],['尖ったアイコン、トランジションのマスク','Pointed icons, transition masks','尖角圖示、轉場遮罩'],
+['アステロイド','Astroid','星形線'],['4つの尖りの星形','A four-cusped star','有四個尖角的星形'],['きらめき・星、キラッとした装飾','Sparkles and stars, glinting ornaments','閃光與星星、閃亮裝飾'],
+['マウラーのバラ','Maurer rose','莫勒玫瑰'],['ローズ曲線上の点を直線で結んだ網目の花','A mesh flower made by joining points on a rose curve with straight lines','以直線連接玫瑰線上的點形成的網狀花'],['繊細なオープニング、ロゴ背景','Delicate openings, logo backgrounds','細膩的片頭、標誌背景'],
+['ギョーシェ模様','Guilloché','扭索紋(Guilloché)'],['紙幣のような細い線が波打って重なる帯','A band of fine wavy lines like those on banknotes','像鈔票上細線波動交疊的帶狀紋'],['高級感、証書・セキュリティ風の演出','Luxury looks, certificate and security styles','高級感、證書與防偽風格演出'],
+['リサジュー曲線','Lissajous curve','李薩如曲線'],['sin/cosの組み合わせでループする線','A looping line made from combined sines and cosines','由sin/cos組合而成的循環線'],['オシロスコープ風UI、音楽ビジュアル','Oscilloscope-style UI, music visuals','示波器風UI、音樂視覺'],
+['3Dリサジュー','3D Lissajous','3D李薩如'],['リサジューを立体で回転させた、毛糸玉のような形','A Lissajous figure in 3D, like a ball of yarn','立體旋轉的李薩如、像毛線球'],['3Dの線アート、回転ループ','3D line art, rotating loops','3D線條藝術、旋轉循環'],
+['ハーモノグラフ','Harmonograph','諧振記錄儀圖(Harmonograph)'],['減衰しながら渦を巻く線の重なり','Layered lines spiralling inward as they decay','邊衰減邊盤旋的重疊線條'],['タイトルバック、高級感のある背景','Title backgrounds, elegant backdrops','片頭背景、高級感背景'],
+['二重振り子','Double pendulum','雙擺'],['予測できない動きで絡まる軌跡','A tangled trail of unpredictable motion','難以預測、糾纏的軌跡'],['カオスの表現、ランダムな線アート','Depicting chaos, random line art','混沌的表現、隨機線條藝術'],
+['バラ曲線','Rose curve','玫瑰線'],['花びらが重なる極座標の曲線','A polar curve of overlapping petals','花瓣交疊的極座標曲線'],['ロゴアニメ、ループ素材','Logo animation, loop elements','標誌動畫、循環素材'],
+['スーパーフォーミュラ','Superformula','超級公式(Superformula)'],['星・花・多角形を1つの式で作る、変形自在の形','One formula that morphs into stars, flowers and polygons','用一個公式做出星形、花朵、多邊形的萬變形狀'],['モーフィング、有機的なシェイプアニメ','Morphing, organic shape animation','變形動畫、有機形狀動畫'],
+['スーパー楕円','Superellipse','超橢圓'],['四角と円の中間の、角の丸い形','A rounded shape between a square and a circle','介於方形與圓形之間的圓角形'],['UIパーツ、アイコンの角丸','UI parts, rounded icon corners','UI元件、圖示的圓角'],
+['バタフライ曲線','Butterfly curve','蝴蝶曲線'],['蝶の羽のような対称形','A symmetric shape like butterfly wings','像蝴蝶翅膀的對稱形'],['自然・季節の演出、装飾','Nature and seasonal effects, ornaments','自然與季節演出、裝飾'],
+['ハート曲線','Heart curve','心形曲線'],['数式で描くハート','A heart drawn by a formula','用數學式畫出的愛心'],['バレンタイン・ウェディング、ポップな演出','Valentine’s, weddings, playful effects','情人節、婚禮、活潑演出'],
+['トーラス結び目','Torus knot','環面紐結'],['ドーナツに巻き付く結び目の線','A knotted line wound around a doughnut','纏繞在甜甜圈上的紐結線'],['3Dロゴ、無限ループの象徴','3D logos, a symbol of endless loops','3D標誌、無限循環的象徵'],
+['フィロタキシス','Phyllotaxis','葉序'],['ひまわりの種のような黄金角の点配置','Dots placed at the golden angle, like sunflower seeds','像向日葵種子般以黃金角排列的點'],['ロゴリビール、有機的なトランジション','Logo reveals, organic transitions','標誌顯現、有機轉場'],
+['対数らせん(黄金)','Logarithmic spiral (golden)','對數螺線(黃金)'],['外へ行くほど広がる、オウムガイ型のらせん','A nautilus-like spiral that widens outward','越往外越寬、像鸚鵡螺的螺線'],['黄金比の解説、構図ガイド','Golden-ratio explainers, composition guides','黃金比例解說、構圖參考線'],
+['アルキメデスらせん','Archimedean spiral','阿基米德螺線'],['一定の間隔で巻くらせん','A spiral with evenly spaced turns','等間距盤繞的螺線'],['催眠・渦の演出、レコード風','Hypnotic swirls, vinyl-record looks','催眠與漩渦演出、黑膠唱片風'],
+['フェルマーらせん','Fermat’s spiral','費馬螺線'],['中心が密で外へ行くほど詰まる二重らせん','A double spiral, dense at the center and tightening outward','中心密、越往外越緊密的雙螺線'],['渦・ワームホール、回転背景','Vortices and wormholes, rotating backgrounds','漩渦與蟲洞、旋轉背景'],
+['リチュウス','Lituus','連鎖螺線(Lituus)'],['中心へ急速に巻き込む、渦巻きと尾の形','A swirl with a tail that winds rapidly into the center','急速捲入中心、帶尾巴的漩渦'],['吸い込みのトランジション、装飾の渦','Suck-in transitions, ornamental swirls','吸入式轉場、裝飾漩渦'],
+['オイラーらせん','Euler spiral','歐拉螺線'],['両端が渦に巻き込むS字の線','An S-shaped line curling into spirals at both ends','兩端捲入漩渦的S形線'],['流れるライン、カリグラフィー風装飾','Flowing lines, calligraphic ornaments','流暢線條、書法風裝飾'],
+['掛け算の円 ×2','Times-table circle ×2','乘法圓 ×2'],['円周上の点を直線で結び、カージオイドが浮かぶ','Joining points on a circle reveals a cardioid','以直線連接圓周上的點,浮現出心臟線'],['数学系の解説、係数を変えるアニメ','Math explainers, animating the multiplier','數學解說、改變係數的動畫'],
+['掛け算の円 ×37','Times-table circle ×37','乘法圓 ×37'],['係数を変えて生まれる、複雑な網目の花','An intricate mesh flower from a larger multiplier','改變係數而生的複雜網狀花朵'],['係数を動かすモーフィング、ループ','Morphing by moving the multiplier, loops','移動係數的變形動畫、循環'],
+['ストリングアート','String art','繞線畫'],['直線だけで曲線の輪郭が見える糸かけ模様','Thread patterns where straight lines alone outline curves','只用直線就浮現曲線輪廓的繞線圖樣'],['手工芸風、ミニマル背景','Handcraft looks, minimal backgrounds','手工藝風、極簡背景'],
+['追跡曲線(4匹の虫)','Pursuit curve (four bugs)','追逐曲線(四隻蟲)'],['互いを追う点の軌跡が渦を描く四角の入れ子','Nested squares where chasing points trace a spiral','互相追逐的點畫出漩渦的巢狀方形'],['渦のトランジション、幾何学背景','Swirl transitions, geometric backgrounds','漩渦轉場、幾何背景'],
+['スターポリゴン {17/7}','Star polygon {17/7}','星形多邊形 {17/7}'],['点を飛ばして結んだ星形','A star made by connecting every m-th point','跳過幾個點相連而成的星形'],['魔法陣・紋章、回転ループ','Magic circles and crests, rotating loops','魔法陣與徽章、旋轉循環'],
+['フーリエ級数(エピサイクル)','Fourier series (epicycles)','傅立葉級數(本輪)'],['回転する円の連鎖が絵を描いていく','A chain of rotating circles draws a picture','一串旋轉的圓逐步畫出圖形'],['「円だけで絵を描く」解説、ロゴ描画','“Drawing with only circles” explainers, logo draw-ons','「只用圓畫圖」的解說、標誌描繪'],
+['矩形波のフーリエ合成','Square-wave Fourier synthesis','方波的傅立葉合成'],['サイン波を重ねて四角い波に近づく','Stacking sine waves approaches a square wave','疊加正弦波逐漸接近方波'],['音・信号の解説、教育系','Sound and signal explainers, education','聲音與訊號解說、教育類'],
+['クラドニ図形','Chladni figures','克拉德尼圖形'],['振動する板に砂が描く対称の模様','Symmetric patterns drawn by sand on a vibrating plate','振動板上的沙子形成的對稱圖樣'],['音楽ビジュアル、周波数の表現','Music visuals, depicting frequency','音樂視覺、頻率的表現'],
+['ローレンツ・アトラクター','Lorenz attractor','勞倫茲吸引子'],['蝶の羽のような、交わらない3D軌道','A never-crossing 3D orbit shaped like butterfly wings','像蝴蝶翅膀、永不相交的3D軌道'],['SF・カオスの表現、3Dの線アート','Sci-fi and chaos visuals, 3D line art','科幻與混沌的表現、3D線條藝術'],
+['クリフォード・アトラクター','Clifford attractor','克利福德吸引子'],['煙や布のような、なめらかな点の雲','A smooth cloud of points like smoke or cloth','像煙或布料般滑順的點雲'],['抽象背景、パラメータを動かすモーフィング','Abstract backgrounds, morphing by moving parameters','抽象背景、移動參數的變形'],
+['de Jong アトラクター','de Jong attractor','de Jong 吸引子'],['絹のような濃淡のある点の集合','A silky cloud of points with soft shading','如絲綢般有濃淡的點集合'],['アート系MV、テクスチャ','Artsy music videos, textures','藝術風MV、材質'],
+['レスラー・アトラクター','Rössler attractor','若斯樂吸引子(Rössler)'],['円盤状に巻き、一部が跳ね上がる軌道','An orbit that winds in a disc and occasionally leaps up','盤狀纏繞、偶爾向上躍起的軌道'],['3D回転のループ素材','Rotating 3D loop elements','3D旋轉循環素材'],
+['Aizawa アトラクター','Aizawa attractor','Aizawa 吸引子'],['球を縦に貫く筒を持つ、繭のような形','A cocoon-like sphere pierced by a vertical tube','有一根縱向貫穿球體的管子、像蠶繭的形狀'],['3Dの線アート、SF的なオブジェ','3D line art, sci-fi objects','3D線條藝術、科幻物件'],
+['エノン写像','Hénon map','埃農映射'],['細い弧が何重にも重なるブーメラン形','A boomerang of many thin, layered arcs','細弧層層疊疊的迴力鏢形'],['ミニマルな数学アート','Minimal math art','極簡數學藝術'],
+['池田写像','Ikeda map','池田映射'],['渦を巻きながら巻き込む点の帯','A band of points spiralling inward','邊盤旋邊捲入的點帶'],['渦・流体の表現','Swirls and fluids','漩渦與流體的表現'],
+['ティンカーベル写像','Tinkerbell map','Tinkerbell 映射'],['鳥や翼に見える、ループした点の軌跡','A looping trail of points that looks like a bird or wings','看起來像鳥或翅膀的迴圈點軌跡'],['有機的な点描アート','Organic pointillist art','有機點描藝術'],
+['標準写像','Standard map','標準映射'],['島や波が並ぶ、縞と渦の点模様','Dotted stripes and swirls with islands and waves','島嶼與波浪並列的條紋與漩渦點圖'],['大理石・流体テクスチャ','Marble and fluid textures','大理石與流體材質'],
+['ロジスティック写像の分岐図','Logistic map bifurcation','邏輯斯諦映射分岔圖'],['1本の線が分かれて、カオスの霧になる','One line splits again and again into a fog of chaos','一條線不斷分岔、化為混沌之霧'],['「秩序からカオスへ」の解説、データ演出','“From order to chaos” explainers, data visuals','「從秩序到混沌」的解說、數據演出'],
+['マンデルブロ集合','Mandelbrot set','曼德博集合'],['縁が無限に入り組む、本体と色の帯','A body with an endlessly intricate edge and bands of color','邊緣無限複雜的本體與色帶'],['無限ズーム、サイケな背景','Infinite zoom, psychedelic backgrounds','無限縮放、迷幻背景'],
+['ジュリア集合','Julia set','朱利亞集合'],['渦巻く縁を持つ、つながった形や塵状の形','Connected or dust-like shapes with swirling edges','邊緣捲曲、相連或如塵埃散落的形狀'],['パラメータを動かすモーフィング、MV','Morphing by moving parameters, music videos','移動參數的變形、MV'],
+['バーニングシップ','Burning Ship','燃燒船碎形'],['燃える船のような、炎状の縁','A flame-like edge resembling a burning ship','像燃燒中的船、火焰狀的邊緣'],['ダークな雰囲気の背景、無限ズーム','Dark, moody backgrounds, infinite zoom','陰暗氣氛的背景、無限縮放'],
+['ニュートン・フラクタル','Newton fractal','牛頓碎形'],['3色の領域が境界で入り組む','Three colored regions intertwined at their borders','三種顏色的區域在邊界錯綜交纏'],['カラフルなテクスチャ、境界のズーム','Colorful textures, zooming into borders','繽紛材質、放大邊界'],
+['等高線','Contour lines','等高線'],['地図のような同じ高さの線の重なり','Layered lines of equal height, like a map','像地圖般、同高度線條的重疊'],['地形・地理系、ミニマル背景','Terrain and geography, minimal backgrounds','地形與地理類、極簡背景'],
+['ウラムのらせん','Ulam spiral','烏拉姆螺旋'],['素数を並べると斜めの筋が浮かぶ点の模様','Dots where primes line up into diagonal streaks','排列質數後浮現斜紋的點圖樣'],['数学ミステリー系、データ演出','Math-mystery content, data visuals','數學懸疑類、數據演出'],
+['レカマン数列','Recamán sequence','雷卡曼數列'],['数直線の上下に半円が飛び跳ねる','Semicircles hopping above and below a number line','在數線上下跳躍的半圓'],['数学系の解説、音楽と連動した演出','Math explainers, music-synced effects','數學解說、與音樂連動的演出'],
+['パスカルの三角形 mod 5','Pascal’s triangle mod 5','帕斯卡三角形 mod 5'],['三角形の中に、三角の抜き模様が繰り返される','Triangular cut-outs repeating inside a triangle','三角形中重複出現三角鏤空圖樣'],['数学の解説、テックパターン','Math explainers, tech patterns','數學解說、科技圖樣'],
+// 動き
+['再帰の世代を1段ずつ進める(置き換えルールを繰り返す回数)','Steps the recursion one generation at a time (how many times the substitution rule repeats)','一次推進一代遞迴(替換規則重複的次數)'],
+['固定円の外側を円が転がり、ペン先の軌跡を描く','A circle rolls around the outside of the fixed circle while the pen tip traces the curve','圓在固定圓外側滾動,筆尖畫出軌跡'],
+['固定円の内側を円が転がり、ペン先の軌跡を描く','A circle rolls inside the fixed circle while the pen tip traces the curve','圓在固定圓內側滾動,筆尖畫出軌跡'],
+['再帰の深さを1段ずつ増やす','Increases the recursion depth one level at a time','遞迴深度一次增加一層'],
+['段数を1段ずつ増やす','Adds one row at a time','一次增加一層'],
+['枝の分岐角度を揺らす(風になびく動き)','Sways the branching angle (like blowing in the wind)','搖動分枝角度(隨風飄動)'],
+['直角三角形の角度を変化させる','Changes the angle of the right triangles','改變直角三角形的角度'],
+['傾きの角度を変化させる','Changes the lean angle','改變傾斜角度'],
+['偶数と奇数で曲げる角度を変化させる','Changes the turn angles for even and odd numbers','改變偶數與奇數時的彎曲角度'],
+['隙間に詰める円を世代ごとに増やす','Adds circles into the gaps generation by generation','每一代在縫隙中加入更多圓'],
+['分母の上限を増やして円を足していく','Adds circles by raising the maximum denominator','提高分母上限、逐步加入圓'],
+['円の鎖を回転させる(内側は逆回転)','Rotates the chain of circles (the inner chain turns the other way)','旋轉圓鏈(內側反向旋轉)'],
+['点を結ぶ角度の間隔を連続的に変える','Continuously changes the angle step between connected points','連續改變連線點之間的角度間隔'],
+['波の位相をずらして帯をうねらせる','Shifts the wave phase so the band ripples','錯開波的相位,讓帶狀紋起伏'],
+['片方の波の位相をずらし続ける','Keeps shifting the phase of one wave','持續錯開其中一個波的相位'],
+['3D空間でY軸回転させる','Rotates around the Y axis in 3D','在3D空間中繞Y軸旋轉'],
+['振り子の位相を少しずつずらす','Gradually shifts the pendulum phase','逐漸錯開擺的相位'],
+['物理シミュレーションをリアルタイムで実行','Runs the physics simulation in real time','即時執行物理模擬'],
+['花びらの数を決める係数kを連続的に変える','Continuously changes k, which sets the number of petals','連續改變決定花瓣數的係數k'],
+['指数パラメータを変えてモーフィング','Morphs by changing the exponent parameters','改變指數參數進行變形'],
+['指数nを変えて星形→円→四角へ変形','Changes the exponent n to morph from star to circle to square','改變指數n,從星形→圓→方形變形'],
+['スケールを鼓動のように脈打たせる','Pulses the scale like a heartbeat','讓縮放像心跳一樣脈動'],
+['3D空間で回転させる','Rotates in 3D space','在3D空間中旋轉'],
+['配置角度を黄金角の前後でわずかに揺らす','Wobbles the placement angle slightly around the golden angle','讓排列角度在黃金角附近微幅擺動'],
+['回転させると自己相似で無限ズームに見える','Rotating it looks like an infinite zoom because it is self-similar','因為自相似,旋轉時看起來像無限縮放'],
+['回転させる(催眠の渦)','Rotates it (a hypnotic swirl)','旋轉(催眠漩渦)'],
+['二重らせんを回転させる','Rotates the double spiral','旋轉雙螺線'],
+['掛ける数を2から連続的に増やす','Continuously increases the multiplier from 2','乘數從2開始連續增加'],
+['掛ける数を37から少しずつ動かす','Slowly moves the multiplier from 37','乘數從37開始緩慢移動'],
+['4匹の虫が互いを追いかけて中心へ進む','Four bugs chase each other toward the center','四隻蟲互相追逐、走向中心'],
+['飛ばす点の数を1から8まで変える','Changes the skip count from 1 to 8','將跳過的點數從1變到8'],
+['円をそれぞれの速度で回転させて線を描く','Each circle spins at its own speed to draw the line','每個圓以各自的速度旋轉、畫出線條'],
+['重ねるサイン波の数を1つずつ増やす','Adds one more sine wave at a time','疊加的正弦波一次增加一個'],
+['2つの振動モードを混ぜ合わせて変化させる','Blends two vibration modes over time','混合兩種振動模式並變化'],
+['式の係数a・bをゆっくり変える','Slowly changes coefficients a and b','緩慢改變式子的係數a、b'],
+['式の係数aをゆっくり変える','Slowly changes coefficient a','緩慢改變式子的係數a'],
+['減衰の係数uを少しずつ変える','Gradually changes the damping coefficient u','逐漸改變衰減係數u'],
+['キック強度Kを変えて秩序とカオスを行き来する','Changes the kick strength K to move between order and chaos','改變踢擊強度K,在秩序與混沌之間來回'],
+['境界の一点に向かって無限ズーム','Infinite zoom toward a point on the boundary','朝邊界上的一點無限縮放'],
+['定数cを円周上で動かして形を変える','Moves the constant c around a circle to change the shape','讓常數c沿圓周移動以改變形狀'],
+['小さな船に向かって無限ズーム','Infinite zoom toward a tiny ship','朝一艘小船無限縮放'],
+['山と谷の位置をゆっくり動かす','Slowly moves the hills and valleys','緩慢移動山與谷的位置'],
+// 方法
+['パスのエクスプレッション','Path expression','路徑運算式'],
+['レイヤー複製+エクスプレッション','Duplicated layers + expressions','複製圖層+運算式'],
+['スクリプトで生成','Generate with a script','用指令碼產生'],
+['外部で計算→連番を読み込む','Compute externally → import an image sequence','外部計算→匯入序列影像'],
+['シェイプレイヤーのパスに createPath() を使うエクスプレッションを設定し、形の計算はすべてエクスプレッションで行う。点の数が多いと重くなるので、点の数もスライダーで調整できるようにする。','Put an expression that uses createPath() on the shape layer’s path and do all shape calculations in the expression. Many points get slow, so make the point count adjustable with a slider too.','在形狀圖層的路徑上設定使用 createPath() 的運算式,所有形狀計算都在運算式中完成。點數太多會變慢,所以點數也要能用滑桿調整。'],
+['小さなシェイプレイヤーを1つ作り、指定した数だけ複製する。各レイヤーの位置やパスは index を使ったエクスプレッションで計算し、共通のパラメータはコントローラー用ヌルレイヤーから参照する。','Create one small shape layer and duplicate it the required number of times. Compute each layer’s position or path with an expression using index, and read shared parameters from a controller null layer.','建立一個小形狀圖層並複製到指定數量。各圖層的位置或路徑用使用 index 的運算式計算,共用參數則從控制用的 Null 圖層讀取。'],
+['図形の数が多く1本のパスでは表現できないため、ExtendScriptで計算してシェイプグループを生成する。パラメータを変えて作り直せるように、ScriptUIのドッキング可能なパネルにスライダー(数値入力)と[生成]ボタンを付ける。生成したシェイプは1つのシェイプレイヤーにまとめ、線と塗りは後からまとめて変えられるようにする。','There are too many shapes for a single path, so compute them in ExtendScript and generate shape groups. To rebuild with new parameters, add sliders (number inputs) and a [Generate] button to a dockable ScriptUI panel. Put the generated shapes in one shape layer so stroke and fill can be changed together afterwards.','圖形數量太多、無法用一條路徑表現,因此用 ExtendScript 計算並產生形狀群組。為了能改參數重新產生,在可停駐的 ScriptUI 面板加上滑桿(數值輸入)與[產生]按鈕。產生的形狀集中在同一個形狀圖層,之後可一起修改筆畫與填色。'],
+['ピクセル単位の計算(または数十万点の描画)が必要でエクスプレッションでは重すぎるため、Pythonで透過PNGの連番を書き出す。続けてExtendScriptでその連番をAEに読み込み、アクティブなコンポに配置するところまで自動化する。色はAE側の「色合い」「グロー」などで調整できるよう、Pythonでは白一色+透明度で書き出す。','It needs per-pixel calculation (or hundreds of thousands of points), which is too heavy for expressions, so write out a transparent PNG sequence with Python. Then automate importing that sequence into AE with ExtendScript and placing it in the active comp. Export in plain white with alpha so color can be set in AE with Tint, Glow and so on.','需要逐像素計算(或繪製數十萬個點),運算式太吃力,因此用 Python 輸出透明 PNG 序列。接著用 ExtendScript 自動把序列匯入 AE 並放進目前的構圖。Python 只輸出白色+透明度,顏色在 AE 用「濃淡」「光暈」等調整。'],
+// エクスプレッション内のコメント
+['// 【適用先】','// [Apply to] ','// 【套用位置】'],
+['// 【準備】ヌルレイヤーを作り名前を「CTRL」にして、「スライダー制御」を追加し名前を変更:','// [Setup] Create a null named “CTRL”, add Slider Controls and rename them:','// 【準備】建立名為「CTRL」的 Null 圖層,加入「滑桿控制」並重新命名:'],
+['// 【準備】このレイヤーに「スライダー制御」を追加し、名前を次のように変更:','// [Setup] Add Slider Controls to this layer and rename them as follows:','// 【準備】在此圖層加入「滑桿控制」,並依下列重新命名:'],
+['シェイプレイヤー > コンテンツ > パス1 > パス','Shape layer > Contents > Path 1 > Path','形狀圖層 > 內容 > 路徑 1 > 路徑'],
+['シェイプレイヤーのパス(このレイヤーを30〜40個複製する)','The shape layer’s Path (duplicate this layer 30–40 times)','形狀圖層的路徑(把此圖層複製 30〜40 個)'],
+['小さな円のシェイプレイヤーの「位置」(このレイヤーを必要な数だけ複製する)','Position of a small circle shape layer (duplicate this layer as many times as needed)','小圓形狀圖層的「位置」(把此圖層複製到需要的數量)'],
+['// 図形の中心をレイヤーの原点に合わせる','// Center the shape on the layer origin','// 讓圖形中心對齊圖層原點'],
+['// 初期の過渡部分は捨てる','// Skip the initial transient','// 捨棄初期的暫態部分'],
+['// z軸を画面の縦にする','// Use the z axis as screen vertical','// 讓 z 軸成為畫面的縱向'],
+['// CTRLを一番上に置いた場合','// When CTRL is the top layer','// CTRL 放在最上層時'],
+['// [回転の速さ, 半径]','// [rotation speed, radius]','// [旋轉速度, 半徑]'],
+['// 線が閉じるまでの周回数','// laps until the line closes','// 線條閉合所需圈數'],
+['L-system:文字列の置き換えを Iterations 回繰り返し、F/G で前進、+/- で回転','L-system: repeat the string substitution Iterations times; F/G move forward, +/- turn','L系統:重複替換字串 Iterations 次,F/G 前進、+/- 旋轉'],
+['線を描く動きはトリムパスの「終了」をアニメーションさせる','To draw the line on, animate Trim Paths “End”','要做描繪動畫,請對修剪路徑的「結束」設定動畫'],
+['枝を「行って戻る」一筆書きにして、1本のパスで木全体を描く','Draws the whole tree as one path by going out and back along each branch','把枝條畫成「去了再回」的一筆畫,用一條路徑畫出整棵樹'],
+['原点が幹の根元になる','The origin is the base of the trunk','原點是樹幹的根部'],
+['線を「行って戻る」一筆書きにして、1本のパスで全体を描く','Draws everything as one path by going out and back along each line','把線條畫成「去了再回」的一筆畫,用一條路徑畫出全部'],
+['index で1本ごとに位相をずらし、重ねて帯にする','Use index to shift the phase per line and stack them into a band','用 index 讓每條線錯開相位,疊成帶狀'],
+['毎フレーム、0秒から現在時刻までを計算し直して先端の軌跡を描く','Each frame, recomputes from 0 s to the current time and draws the tip’s trail','每一格都從0秒重新計算到目前時間,畫出末端軌跡'],
+['長い尺では重くなるので、必要なら最後にプリレンダーする','Long durations get slow, so pre-render at the end if needed','時間長會變慢,需要時最後再預先演算'],
+['CTRLを一番上に置く。点の数=複製したレイヤーの数','Put CTRL at the top. Number of dots = number of duplicated layers','把 CTRL 放在最上層。點的數量=複製的圖層數'],
+['曲率が長さに比例して増える曲線を数値積分で描く','Draws, by numerical integration, a curve whose curvature grows with length','以數值積分畫出曲率隨長度等比增加的曲線'],
+['点 i から点 i×K へ線を引いて戻る、を繰り返して1本のパスで描く','Draws one path by repeatedly going from point i to point i×K and back','重複「從點 i 連到點 i×K 再返回」,用一條路徑畫出'],
+['角をはさむ2辺の点を結ぶ直線を、行って戻る一筆書きにする','Joins points on the two sides of a corner with lines, drawn out and back in one stroke','把連接角落兩邊上各點的直線,畫成去了再回的一筆畫'],
+['多角形を少しずつ回転・縮小させて入れ子にし、1本のパスでつなぐ','Nests polygons that slowly rotate and shrink, joined into one path','讓多邊形一點點旋轉、縮小並巢狀排列,用一條路徑連起來'],
+['回転する円そのものは、楕円レイヤーを円の数だけ作り、それぞれの位置を前の円の先端に合わせて回転させる','For the spinning circles themselves, make one ellipse layer per circle and place each at the tip of the previous one','旋轉的圓本身:依圓的數量建立橢圓圖層,各自對齊前一個圓的末端再旋轉'],
+['微分方程式をオイラー法で解いて軌道を描く','Solves the differential equations with Euler’s method and draws the orbit','以歐拉法解微分方程式並畫出軌道'],
+['線を描く動きはトリムパス、立体回転は RotY に time*20 など','Use Trim Paths for draw-on; for 3D rotation put e.g. time*20 on RotY','描繪動畫用修剪路徑,立體旋轉可在 RotY 用 time*20 等'],
+['各項のあいだを半円で結び、上下交互に描く','Joins consecutive terms with semicircles, alternating above and below','以半圓連接相鄰各項,上下交替畫出'],
+// パラメータ
+['再帰の世代(上げすぎると重くなる)','Recursion generation (high values get slow)','遞迴代數(太高會變慢)'],['曲がる角度(度)','Turn angle (degrees)','轉彎角度(度)'],['1歩の長さ(px)','Step length (px)','每一步的長度(px)'],
+['計算する点の数','Number of points to compute','計算的點數'],['Y軸まわりの回転(度)。動かすと3D回転','Rotation around Y (degrees). Animate for a 3D spin','繞Y軸旋轉(度)。改變它即可3D旋轉'],['前後の傾き(度)','Forward/back tilt (degrees)','前後傾斜(度)'],['大きさ(倍率)','Size (multiplier)','大小(倍率)'],['点の数','Number of points','點數'],
+['固定円の半径(整数)','Fixed-circle radius (integer)','固定圓半徑(整數)'],['転がる円の半径(整数)','Rolling-circle radius (integer)','滾動圓半徑(整數)'],['ペン先の距離(rと同じなら尖る)','Pen distance (cusps when equal to r)','筆尖距離(與r相同時會出現尖角)'],
+['再帰の深さ','Recursion depth','遞迴深度'],['全体の大きさ(px)','Overall size (px)','整體大小(px)'],['最初の正方形の大きさ(px)','First square size (px)','第一個正方形的大小(px)'],['1枚ごとの不透明度(%)','Opacity of each square (%)','每一片的不透明度(%)'],
+['段数','Rows','層數'],['横幅(px)','Width (px)','寬度(px)'],['棒の太さ(px)','Bar thickness (px)','橫條粗細(px)'],['段の間隔(px)','Row spacing (px)','層間距(px)'],['分割の段数(4なら16×16)','Subdivision levels (4 = 16×16)','分割層數(4為16×16)'],
+['再帰の世代','Recursion generation','遞迴代數'],['枝の角度(度)','Branch angle (degrees)','分枝角度(度)'],['枝分かれの回数','Number of branchings','分岔次數'],['分岐角度(度)。揺らすと風になびく','Branch angle (degrees). Wobble it to sway in the wind','分岔角度(度)。擺動它就像隨風搖曳'],['枝が短くなる比率','Branch shortening ratio','枝條縮短比例'],['幹の長さ(px)','Trunk length (px)','樹幹長度(px)'],
+['直角三角形の角度(度)','Right-triangle angle (degrees)','直角三角形角度(度)'],['根元の正方形(px)','Base square (px)','底部正方形(px)'],['直角三角形の角度(度)。45以外で非対称','Right-triangle angle (degrees). Asymmetric when not 45','直角三角形角度(度)。不是45時會不對稱'],['最初の横線の長さ(px)','First horizontal line length (px)','第一條橫線長度(px)'],
+['描く数の個数','How many numbers to draw','要畫的數字個數'],['偶数のとき曲げる角度(度)','Turn angle for even numbers (degrees)','偶數時的彎曲角度(度)'],['奇数のとき曲げる角度(度)','Turn angle for odd numbers (degrees)','奇數時的彎曲角度(度)'],['線の不透明度(%)','Line opacity (%)','線條不透明度(%)'],
+['これより小さい円は作らない(px)','Skip circles smaller than this (px)','不產生比這更小的圓(px)'],['外側の円の半径(px)','Outer circle radius (px)','外圓半徑(px)'],['分母の上限(円の細かさ)','Maximum denominator (circle detail)','分母上限(圓的細緻度)'],
+['リングに並ぶ円の数','Circles in the ring','環上排列的圓數'],['内側に入れ子にする段数','Nested levels inside','向內巢狀的層數'],['リングの回転(度)。動かすと鎖が回る','Ring rotation (degrees). Animate to spin the chain','環的旋轉(度)。改變它鏈條就會轉動'],
+['円の最大数','Maximum number of circles','圓的最大數量'],['最大半径(px)','Maximum radius (px)','最大半徑(px)'],['最小半径(px)','Minimum radius (px)','最小半徑(px)'],['円どうしの隙間(px)','Gap between circles (px)','圓之間的間隙(px)'],['乱数シード','Random seed','亂數種子'],
+['花びらの係数','Petal coefficient','花瓣係數'],['点を結ぶ角度の間隔(度)。動かすと網目が変化','Angle step between joined points (degrees). Animate to change the mesh','連線點的角度間隔(度)。改變它網紋就會變化'],['大きさ(px)','Size (px)','大小(px)'],
+['1本あたりの点の数','Points per line','每條線的點數'],['基本の半径(px)','Base radius (px)','基本半徑(px)'],['波の数','Number of waves','波的數量'],['波の大きさ','Wave size','波的大小'],['1本ごとの位相のずれ','Phase offset per line','每條線的相位偏移'],['全体の位相。動かすと帯がうねる','Overall phase. Animate to make the band ripple','整體相位。改變它帶狀紋就會起伏'],
+['横方向の周波数','Horizontal frequency','橫向頻率'],['縦方向の周波数','Vertical frequency','縱向頻率'],['位相差(度)。動かすと形が回転して見える','Phase difference (degrees). Animate and the shape seems to rotate','相位差(度)。改變它形狀看起來會旋轉'],
+['X方向の周波数','X frequency','X方向頻率'],['Y方向の周波数','Y frequency','Y方向頻率'],['Z方向の周波数','Z frequency','Z方向頻率'],['Y軸回転(度)。time*30 などで回転','Y rotation (degrees). Spin with e.g. time*30','Y軸旋轉(度)。可用 time*30 等旋轉'],
+['描く長さ(振り子の時間)','Length to draw (pendulum time)','繪製長度(擺動時間)'],['減衰の速さ','Decay rate','衰減速度'],['位相(ラジアン)。動かすと模様が変化','Phase (radians). Animate to change the pattern','相位(弧度)。改變它圖樣就會變化'],
+['1本目の初期角度(度)','First arm starting angle (degrees)','第一節初始角度(度)'],['2本目の初期角度(度)','Second arm starting angle (degrees)','第二節初始角度(度)'],['腕の長さ(px)','Arm length (px)','擺臂長度(px)'],['シミュレーションの速さ','Simulation speed','模擬速度'],
+['係数の分子','Coefficient numerator','係數分子'],['係数の分母(整数)','Coefficient denominator (integer)','係數分母(整數)'],['対称の数','Symmetry count','對稱數'],['全体の膨らみ','Overall bulge','整體膨脹度'],['形の指数1。動かすとモーフィング','Shape exponent 1. Animate to morph','形狀指數1。改變它即可變形'],['形の指数2','Shape exponent 2','形狀指數2'],
+['指数(1未満で星形、2で円、大きいほど四角)','Exponent (below 1 = star, 2 = circle, higher = squarer)','指數(小於1為星形、2為圓、越大越方)'],['周回数(多いほど線が重なる)','Number of laps (more = more overlap)','繞行圈數(越多線條越重疊)'],['鼓動の大きさ(%)。キーフレームで脈打たせる','Beat size (%). Keyframe it to make it pulse','心跳幅度(%)。用關鍵影格讓它脈動'],
+['ドーナツの穴を回る回数','Turns around the hole','繞甜甜圈孔洞的次數'],['チューブを巻く回数','Turns around the tube','纏繞管身的次數'],['Y軸回転(度)','Y rotation (degrees)','Y軸旋轉(度)'],
+['配置角度(度)。黄金角から少しずらすと渦の本数が変わる','Placement angle (degrees). Nudge it off the golden angle to change the number of spirals','排列角度(度)。稍微偏離黃金角,螺臂數量就會改變'],['点の間隔(px)','Dot spacing (px)','點的間距(px)'],
+['巻き数','Number of turns','圈數'],['90度ごとに広がる比率(黄金比=1.618)','Growth per 90 degrees (golden ratio = 1.618)','每90度擴展的比例(黃金比=1.618)'],['巻きの間隔(倍率)','Turn spacing (multiplier)','圈距(倍率)'],['開始角度(ラジアン)。尾の長さ','Start angle (radians). Tail length','起始角度(弧度)。尾巴長度'],['終了角度(ラジアン)。渦の細かさ','End angle (radians). Swirl detail','結束角度(弧度)。漩渦細緻度'],['曲線の長さ(大きいほど渦が深い)','Curve length (larger = deeper spirals)','曲線長度(越大漩渦越深)'],
+['円周上の点の数','Points on the circle','圓周上的點數'],['掛ける数。動かすと形が変化','Multiplier. Animate to change the shape','乘數。改變它形狀就會變化'],['半径(px)','Radius (px)','半徑(px)'],
+['1つの角あたりの糸の本数','Threads per corner','每個角的線數'],['正方形の大きさ(px)','Square size (px)','正方形大小(px)'],['どの角か(0〜3)。パスを4つ作り0〜3を設定','Which corner (0–3). Make 4 paths and set 0–3','哪個角(0〜3)。建立4條路徑並分別設為0〜3'],
+['虫の数(多角形の頂点数)','Number of bugs (polygon vertices)','蟲的數量(多邊形頂點數)'],['描く段数','Number of steps to draw','繪製層數'],['1段で進む割合','Fraction moved per step','每層前進的比例'],
+['頂点の数','Number of vertices','頂點數'],['いくつ飛ばして結ぶか','How many to skip when connecting','跳過幾個點再連線'],['使う円の数(1〜5)','Number of circles used (1–5)','使用的圓數(1〜5)'],
+['重ねる最大の倍音(奇数)','Highest harmonic to add (odd)','疊加的最高諧波(奇數)'],['振幅(px)','Amplitude (px)','振幅(px)'],
+['振動モードの数1','Vibration mode number 1','振動模式數1'],['振動モードの数2','Vibration mode number 2','振動模式數2'],['砂が集まる線の太さ','Thickness of the sand lines','沙子聚集線條的粗細'],['2つ目のモードとの混ぜ具合(0〜1)。連番で動かすと形が変化','Blend with the second mode (0–1). Animate across frames to change the shape','與第二模式的混合比例(0〜1)。在序列中改變即可變形'],
+['係数a','Coefficient a','係數a'],['係数b','Coefficient b','係數b'],['係数c','Coefficient c','係數c'],['係数d','Coefficient d','係數d'],['打つ点の数','Number of points to plot','繪製的點數'],
+['10万〜1000万','100K–10M','10萬〜1000萬'],['1万〜500万','10K–5M','1萬〜500萬'],['10万〜500万','100K–5M','10萬〜500萬'],
+['減衰の係数(0.86〜0.9あたりで渦になる)','Damping coefficient (swirls around 0.86–0.9)','衰減係數(約0.86〜0.9會形成漩渦)'],
+['キック強度(大きいほどカオス)','Kick strength (higher = more chaos)','踢擊強度(越大越混沌)'],['初期値の数','Number of starting points','初始值數量'],['1つの初期値あたりの反復','Iterations per starting point','每個初始值的迭代次數'],
+['rの最小値','Minimum r','r的最小值'],['rの最大値','Maximum r','r的最大值'],['rの分割数(横の解像度)','r divisions (horizontal resolution)','r的分割數(橫向解析度)'],
+['ズームの中心X','Zoom center X','縮放中心X'],['ズームの中心Y','Zoom center Y','縮放中心Y'],['最初の倍率','Starting zoom','起始倍率'],['最後の倍率','Final zoom','最終倍率'],['反復回数の上限','Maximum iterations','迭代次數上限'],['書き出すフレーム数','Frames to export','輸出影格數'],
+['定数cの実部。動かすと形が変化','Real part of c. Change it to reshape','常數c的實部。改變它形狀就會變化'],['定数cの虚部','Imaginary part of c','常數c的虛部'],['書き出すフレーム数(cを円周上で動かす)','Frames to export (moves c around a circle)','輸出影格數(讓c沿圓周移動)'],['フレーム数','Frames','影格數'],
+['多項式の次数(z^n − 1)。根の数=色の数','Polynomial degree (z^n − 1). Roots = colors','多項式次數(z^n − 1)。根的數量=顏色數'],['倍率','Zoom','倍率'],
+['等高線の本数','Number of contour lines','等高線數量'],['山と谷の数','Number of hills and valleys','山與谷的數量'],['山の動く速さ(連番の場合)','Hill movement speed (for sequences)','山移動的速度(序列時)'],
+['1辺のマス数(奇数)','Cells per side (odd)','每邊格數(奇數)'],['マスの大きさ(px)','Cell size (px)','格子大小(px)'],['点の大きさの比率','Dot size ratio','點的大小比例'],
+['項の数','Number of terms','項數'],['数1あたりの幅(px)','Width per unit (px)','每單位寬度(px)'],['割る数(余りで模様が変わる)','Modulus (the remainder changes the pattern)','除數(餘數會改變圖樣)'],
+// 注意書き
+['三角形が数百〜数千個に分かれるため、1本のパスでは描けません。スクリプトで三角形のシェイプを一括生成するのが確実です。手作業で作るなら、三角形1つにリピーター(コピー数3・位置ずらし)を入れ子にする方法もあります。','It splits into hundreds or thousands of triangles, so one path can’t draw it. Generating the triangles with a script is the reliable way. By hand, you can also nest Repeaters (3 copies, offset position) on a single triangle.','三角形會分成數百到數千個,無法用一條路徑畫出。用指令碼一次產生三角形最可靠。若要手動製作,也可以在一個三角形上巢狀使用重複器(複本3個、位置錯開)。'],
+['正方形が数千個になるため、スクリプトで生成するのが確実です。浅い深さなら、正方形にリピーターを入れ子にしても作れます。','It needs thousands of squares, so a script is the reliable way. At shallow depths you can also nest Repeaters on a square.','需要數千個正方形,用指令碼產生最可靠。層數淺時也能在正方形上巢狀使用重複器。'],
+['十字に並ぶ正方形が数百個になるため、スクリプトで生成するのが確実です。','It needs hundreds of squares in crosses, so a script is the reliable way.','十字排列的正方形會有數百個,用指令碼產生最可靠。'],
+['重なる正方形が数千枚になるため、スクリプトで生成するのが確実です。不透明度を下げると重なりの濃淡が出ます。','It needs thousands of overlapping squares, so a script is the reliable way. Lower the opacity to bring out the overlap shading.','重疊的正方形會有數千片,用指令碼產生最可靠。降低不透明度就能呈現重疊的濃淡。'],
+['段ごとに棒が倍に増えるため、スクリプトで矩形を生成するのが確実です。','The bars double every row, so generating rectangles with a script is the reliable way.','橫條每層加倍,用指令碼產生矩形最可靠。'],
+['枝分かれ([ ])があるため、1本のパスでは描けません。スクリプトで枝ごとのパスを生成するのが確実です。成長アニメは、枝ごとのトリムパスを世代順に遅らせると作れます。','It branches ([ ]), so one path can’t draw it. Generating a path per branch with a script is the reliable way. For growth animation, delay each branch’s Trim Paths by generation.','因為有分枝([ ]),無法用一條路徑畫出。用指令碼為每根枝條產生路徑最可靠。成長動畫可依代數延遲各枝條的修剪路徑。'],
+['正方形が数千個に増え、それぞれ塗りが必要なため、スクリプトで生成するのが確実です。','It grows to thousands of filled squares, so a script is the reliable way.','正方形會增加到數千個且各自需要填色,用指令碼產生最可靠。'],
+['数ごとに別々の線が数千本になるため、スクリプトで生成するのが確実です。線を重ねて不透明度を下げると、束の濃淡が出ます。','Each number is a separate line, thousands in total, so a script is the reliable way. Overlap them at low opacity to shade the bundle.','每個數字是一條獨立的線,共有數千條,用指令碼產生最可靠。降低不透明度疊加,線束就有濃淡。'],
+['円が数千個になるため、スクリプトで楕円のシェイプを一括生成するのが確実です。円の位置と大きさは「デカルトの円定理」で計算します。','It needs thousands of circles, so generating ellipse shapes with a script is the reliable way. Positions and sizes come from Descartes’ circle theorem.','圓會有數千個,用指令碼一次產生橢圓形狀最可靠。圓的位置與大小以「笛卡兒圓定理」計算。'],
+['円が数百個になるため、スクリプトで生成するのが確実です。','It needs hundreds of circles, so a script is the reliable way.','圓會有數百個,用指令碼產生最可靠。'],
+['1段だけなら、楕円1つにリピーター(コピー数=円の数、回転=360÷円の数)でも作れます。入れ子にする場合はスクリプトで生成するのが確実です。','For a single ring, one ellipse with a Repeater (copies = circle count, rotation = 360 ÷ count) works. For nested rings, a script is the reliable way.','只有一層的話,一個橢圓加重複器(複本數=圓數、旋轉=360÷圓數)也能做到。要巢狀時用指令碼產生最可靠。'],
+['円の配置は乱数で試行錯誤して決めるため、スクリプトで計算して楕円を生成するのが確実です。','Placement is found by random trial and error, so computing it in a script and generating ellipses is the reliable way.','圓的位置以亂數反覆嘗試決定,用指令碼計算並產生橢圓最可靠。'],
+['「掛け算の円 ×2」と同じエクスプレッションで、Kを37にします。','Same expression as “Times-table circle ×2”, with K set to 37.','與「乘法圓 ×2」相同的運算式,把K設為37。'],
+['画面の全ピクセルで振動の式を計算するため、外部で連番を作るのが確実です。式は cos(nπx)cos(mπy) − cos(mπx)cos(nπy) がほぼ0になる場所に点を打ちます。','The vibration formula is computed for every pixel, so making a sequence externally is the reliable way. Dots go where cos(nπx)cos(mπy) − cos(mπx)cos(nπy) is close to 0.','每個像素都要計算振動公式,在外部製作序列最可靠。在 cos(nπx)cos(mπy) − cos(mπx)cos(nπy) 接近0的位置打點。'],
+['数百万の点を重ねて濃淡を出すため、外部で計算するのが確実です。点の密度を対数で明るさに変えると、煙のような質感になります。','Millions of points are layered to create shading, so computing externally is the reliable way. Mapping point density to brightness on a log scale gives a smoky texture.','需要疊加數百萬個點來呈現濃淡,在外部計算最可靠。把點的密度以對數轉為亮度,就會有煙霧般的質感。'],
+['数百万の点を重ねて濃淡を出すため、外部で計算するのが確実です。','Millions of points are layered to create shading, so computing externally is the reliable way.','需要疊加數百萬個點來呈現濃淡,在外部計算最可靠。'],
+['点の集まりで形が見えるタイプなので、外部で点を打って書き出すのが確実です。','The shape emerges from a cloud of points, so plotting and exporting them externally is the reliable way.','形狀由點的集合呈現,在外部打點並輸出最可靠。'],
+['点の集まりで形が見えるタイプなので、外部で計算するのが確実です。uが0.9を超えると1点に収束して消えるので注意。','The shape emerges from a cloud of points, so computing externally is the reliable way. Note: above u = 0.9 it collapses to a single point and disappears.','形狀由點的集合呈現,在外部計算最可靠。注意:u超過0.9會收斂成一點而消失。'],
+['点の集まりで形が見えるタイプなので、外部で計算するのが確実です。','The shape emerges from a cloud of points, so computing externally is the reliable way.','形狀由點的集合呈現,在外部計算最可靠。'],
+['多数の初期値から点を打つため、外部で計算するのが確実です。','Points are plotted from many starting values, so computing externally is the reliable way.','需要從大量初始值打點,在外部計算最可靠。'],
+['rごとに数百回の反復を計算して点を打つため、外部で計算するのが確実です。','Hundreds of iterations are computed for each r, so computing externally is the reliable way.','每個r都要計算數百次迭代再打點,在外部計算最可靠。'],
+['ピクセルごとに数百回の計算が必要なため、エクスプレッションでは不可能です。無限ズームはPythonで倍率を変えながら連番を書き出すのが確実です(深いズームは計算精度に注意)。','Hundreds of calculations per pixel make expressions impossible. For an infinite zoom, export a sequence from Python while changing the zoom (watch numerical precision on deep zooms).','每個像素需要數百次計算,運算式無法處理。無限縮放用 Python 邊改倍率邊輸出序列最可靠(深度縮放要注意計算精度)。'],
+['ピクセルごとに反復計算が必要なため、外部で連番を作るのが確実です。','Every pixel needs iterative calculation, so making a sequence externally is the reliable way.','每個像素都需要迭代計算,在外部製作序列最可靠。'],
+['ピクセルごとにニュートン法を計算するため、外部で連番を作るのが確実です。根ごとに別々の画像(マスク)として書き出すと、AE側で色を付けやすくなります。','Newton’s method runs for every pixel, so making a sequence externally is the reliable way. Exporting each root as a separate image (mask) makes coloring in AE easy.','每個像素都要做牛頓法計算,在外部製作序列最可靠。把每個根輸出成獨立影像(遮罩),在 AE 上色會更容易。'],
+['AEだけで近い見た目を作るなら、フラクタルノイズ → ポスタリゼーション → 輪郭検出 を重ねる方法があります。正確な線をベクターで欲しい場合は、マーチングスクエア法で等高線を計算してシェイプとして読み込むのが確実です。','For a similar look in AE alone, stack Fractal Noise → Posterize → Find Edges. For accurate vector lines, compute the contours with marching squares and import them as shapes.','若只用 AE 做出相近效果,可疊加 碎形雜訊 → 色調分離 → 尋找邊緣。若需要精確的向量線條,用行進方塊法計算等高線並以形狀匯入最可靠。'],
+['素数の位置に数千個の点を置くため、スクリプトで生成するのが確実です。','Thousands of dots go on prime positions, so a script is the reliable way.','要在質數位置放置數千個點,用指令碼產生最可靠。'],
+['マスが千個以上になり、余りに応じて不透明度を変えるため、スクリプトで生成するのが確実です。','Over a thousand cells with opacity set by the remainder, so a script is the reliable way.','格子超過一千個,並依餘數改變不透明度,用指令碼產生最可靠。']
+];
+
+const EXPL={
+'コッホ曲線':['スウェーデンの数学者ヘルゲ・フォン・コッホが1904年に発表しました。どこもつながっているのに、どこも角だらけで接線が引けない曲線の例です。世代ごとに長さが4/3倍になり、無限に長くなります。','Published by Swedish mathematician Helge von Koch in 1904 as a curve that is continuous everywhere yet has a tangent nowhere. Each generation multiplies its length by 4/3, so it grows infinitely long.','瑞典數學家海里格・馮・科赫於1904年發表。它處處連續、卻處處都是尖角而無法畫切線。每一代長度變為4/3倍,因此會無限延長。'],
+'コッホ雪片':['周の長さは無限なのに、囲まれた面積は最初の三角形の8/5倍で止まります。フラクタル次元は約1.26で、線と面の中間の「次元」を持ちます。','Its perimeter is infinite, yet the enclosed area stops at 8/5 of the original triangle. Its fractal dimension is about 1.26, between a line and a surface.','周長無限,但圍出的面積停在原三角形的8/5倍。碎形維度約1.26,介於線與面之間。'],
+'チェザロ曲線':['イタリアの数学者エルネスト・チェザロにちなむ、コッホ曲線の変種です。折れる角度を85°まで鋭くすると、出っ張りが内側に深く食い込み、密に詰まった模様になります。','A Koch-curve variant named after Italian mathematician Ernesto Cesàro. Sharpening the fold to 85° makes the spikes bite deep inward into a dense pattern.','以義大利數學家埃內斯托・切薩羅命名的科赫曲線變體。把折角銳化到85°,凸起會深深向內咬合,形成密集的圖樣。'],
+'2次コッホ島':['正方形の各辺を、直角の凹凸8本に置き換えるのを繰り返します。出っ張りとへこみが同じ面積なので、面積は元の正方形のまま、周の長さだけが無限に伸びます。','Each side of a square is repeatedly replaced by eight right-angled segments. Bumps and dents have equal area, so the area stays that of the square while the perimeter grows without limit.','把正方形每一邊反覆換成8段直角凹凸。凸出與凹入面積相同,所以面積維持原正方形,只有周長無限延伸。'],
+'ミンコフスキー・ソーセージ':['数学者ヘルマン・ミンコフスキーにちなみます。1本の線が1/4サイズの8本に分かれるので、フラクタル次元はちょうど1.5になります。','Named after mathematician Hermann Minkowski. Each segment becomes eight copies at 1/4 scale, so its fractal dimension is exactly 1.5.','以數學家赫爾曼・閔可夫斯基命名。每段線變成8段1/4大小的線,所以碎形維度剛好是1.5。'],
+'ドラゴン曲線':['1960年代にNASAの物理学者ジョン・ハイウェイらが発見しました。紙テープを同じ向きに何度も半分に折り、開いて折り目を直角にすると現れます。小説『ジュラシック・パーク』の章扉にも使われました。','Discovered in the 1960s by NASA physicists including John Heighway. Fold a strip of paper in half repeatedly in the same direction, unfold it with every crease at 90°, and this shape appears. It decorates the chapter openings of the novel Jurassic Park.','1960年代由NASA物理學家約翰・海威等人發現。把紙條朝同一方向反覆對折,展開後讓每個摺痕成直角,就會出現這個形狀。小說《侏羅紀公園》的章節扉頁也用了它。'],
+'レヴィC曲線':['フランスの数学者ポール・レヴィが1938年に研究しました。線分を、それを斜辺とする直角二等辺三角形の2辺に置き換えるのを繰り返します。ドラゴン曲線とは折る向きが違うだけの兄弟です。','Studied by French mathematician Paul Lévy in 1938. Each segment is repeatedly replaced by the two legs of the right isosceles triangle built on it. It is a sibling of the dragon curve, differing only in fold direction.','法國數學家保羅・萊維於1938年研究。把線段反覆替換成以它為斜邊的等腰直角三角形的兩股。它與龍形曲線是兄弟,只差在摺的方向。'],
+'シェルピンスキーの三角形':['ポーランドの数学者ヴァツワフ・シェルピンスキーが1915年に発表しました。パスカルの三角形の奇数だけを塗っても、点をランダムに打つ「カオスゲーム」でも同じ模様が現れます。','Published by Polish mathematician Wacław Sierpiński in 1915. The same pattern appears if you color the odd numbers of Pascal’s triangle, or plot random points with the “chaos game.”','波蘭數學家瓦茨瓦夫・謝爾賓斯基於1915年發表。只塗帕斯卡三角形的奇數,或用隨機打點的「混沌遊戲」,都會出現同樣的圖樣。'],
+'シェルピンスキーの矢じり':['1本の線を折り曲げるだけで、世代を上げるほどシェルピンスキーの三角形に近づきます。トリムパスで描くと、三角形が一筆で埋まっていく様子が見せられます。','Just by bending one line, it approaches the Sierpiński triangle as generations increase. With Trim Paths you can show the triangle being filled in a single stroke.','只靠折彎一條線,世代越高就越接近謝爾賓斯基三角形。用修剪路徑描繪,就能呈現三角形被一筆填滿的過程。'],
+'シェルピンスキーのカーペット':['シェルピンスキーが1916年に発表しました。繰り返すほど面積は0に近づきますが、平面上のどんな曲線もこの図形の中に描けるという不思議な性質があります。','Published by Sierpiński in 1916. Its area tends to zero, yet any curve in the plane can be drawn inside it, a strange property called universality.','謝爾賓斯基於1916年發表。重複越多面積越接近0,但平面上任何曲線都能畫在其中,具有奇妙的「普適性」。'],
+'ヴィチェック・フラクタル':['ハンガリーの物理学者タマーシュ・ヴィチェックにちなみます。正方形を9分割して十字の5マスだけ残すのを繰り返し、次元は約1.465です。','Named after Hungarian physicist Tamás Vicsek. Split a square into nine and keep only the five forming a cross, again and again. Its dimension is about 1.465.','以匈牙利物理學家塔馬什・維切克命名。把正方形九等分、只留下十字的5格,反覆進行,維度約1.465。'],
+'T-スクエア':['正方形の4つの角に、半分の大きさの正方形を置き続けます。極限では元の正方形の範囲をすき間なく埋め、フラクタル次元は2になります。','Keep placing half-size squares on the four corners. In the limit it fills its bounding square completely, with a fractal dimension of 2.','不斷在四個角放上一半大小的正方形。極限時會毫無空隙地填滿外框,碎形維度為2。'],
+'カントール集合':['ゲオルク・カントールが1883年に紹介しました。線分の真ん中1/3を取り除き続けると、長さの合計は0になるのに、残る点は実数と同じだけ(数えきれないほど)あります。','Introduced by Georg Cantor in 1883. Keep removing the middle third and the total length becomes zero, yet as many points remain as there are real numbers.','格奧爾格・康托爾於1883年提出。不斷移除中間1/3,總長度變成0,但剩下的點和實數一樣多(不可數)。'],
+'ヒルベルト曲線':['ダフィット・ヒルベルトが1891年に発表した「空間充填曲線」です。1次元の線で2次元の面を埋め尽くします。近い点が線の上でも近くに並ぶので、画像処理やデータベースの索引に使われます。','A space-filling curve published by David Hilbert in 1891: a 1-D line that fills a 2-D square. Nearby points stay close along the line, so it is used in image processing and database indexing.','大衛・希爾伯特於1891年發表的「空間填充曲線」,用一維的線填滿二維的面。相近的點在線上也相近,因此用於影像處理與資料庫索引。'],
+'ペアノ曲線':['ジュゼッペ・ペアノが1890年に発見した、最初の空間充填曲線です。「線が面を埋め尽くせる」という発見は、当時の数学者を大いに驚かせました。','The first space-filling curve, found by Giuseppe Peano in 1890. The idea that a line could fill an area astonished mathematicians of the time.','朱塞佩・皮亞諾於1890年發現的第一條空間填充曲線。「線能填滿面」的發現,讓當時的數學家大為震驚。'],
+'ムーア曲線':['E・H・ムーアが1900年に発表した、ヒルベルト曲線の変種です。始点と終点が隣り合うので、ループ素材として切れ目なくつなげられます。','A Hilbert-curve variant published by E. H. Moore in 1900. Its start and end are adjacent, so it loops seamlessly.','E・H・摩爾於1900年發表的希爾伯特曲線變體。起點與終點相鄰,可做成無縫循環素材。'],
+'シェルピンスキー曲線':['シェルピンスキーが1912年に発表した、閉じた空間充填曲線です。斜め45°の線だけで正方形を埋めます。','A closed space-filling curve published by Sierpiński in 1912, filling a square using only 45° lines.','謝爾賓斯基於1912年發表的封閉空間填充曲線,只用45°斜線填滿正方形。'],
+'ゴスパー曲線':['プログラマーのビル・ゴスパーが1970年代に考案し、「フロースネーク」とも呼ばれます。六角形の格子を埋め、全体の輪郭は雪片のような「ゴスパー島」になります。','Devised by programmer Bill Gosper in the 1970s and also called the flowsnake. It fills a hexagonal grid, and its outline forms the snowflake-like “Gosper island.”','由程式設計師比爾・高斯帕於1970年代設計,又稱「流蛇(flowsnake)」。它填滿六角格子,整體輪廓是雪花般的「高斯帕島」。'],
+'Zオーダー曲線':['座標の2進数のビットを交互に並べた順番(モートン順序)です。近い位置のデータをメモリ上でも近くに置けるため、GPUのテクスチャやデータベースで使われています。','The order you get by interleaving the binary bits of the coordinates (Morton order). It keeps nearby data close in memory, so GPUs and databases use it.','把座標的二進位位元交錯排列的順序(莫頓序)。能讓位置相近的資料在記憶體中也相近,因此用於GPU材質與資料庫。'],
+'L-system(植物)':['生物学者アリステッド・リンデンマイヤーが1968年、藻類の成長を記述するために考案しました。文字を置き換えるルールだけで、本物そっくりの草木が育ちます。','Devised in 1968 by biologist Aristid Lindenmayer to describe algae growth. Simple character-replacement rules grow strikingly realistic plants.','生物學家阿利斯蒂德・林登麥伊爾於1968年為描述藻類生長而設計。只靠替換字元的規則,就能長出逼真的草木。'],
+'フラクタルツリー':['枝を一定の比率と角度で二股に分け続ける、いちばん基本的な再帰図形です。比率と角度を変えるだけで、シダ・ブロッコリー・稲妻のように印象が変わります。','The most basic recursive figure: keep forking each branch at a fixed ratio and angle. Changing just those two values turns it into a fern, broccoli or lightning.','最基本的遞迴圖形:以固定比例與角度不斷分岔。只要改變比例與角度,就能變成蕨類、花椰菜或閃電。'],
+'ピタゴラスの木':['オランダの数学教師アルベルト・ボスマンが1942年に考案しました。三平方の定理の図(直角三角形の各辺に正方形)を、どこまでも積み重ねています。','Devised by Dutch math teacher Albert Bosman in 1942. It stacks the Pythagorean-theorem diagram, squares on the sides of a right triangle, endlessly.','荷蘭數學老師亞伯特・博斯曼於1942年設計。把畢氏定理的圖(直角三角形各邊上的正方形)無限堆疊。'],
+'非対称ピタゴラスの木':['直角三角形の角度を45°以外にすると、片側の枝ばかりが大きくなり、カールしながら巻き込む形になります。角度を動かすと、風に揺れるような動きが出ます。','With an angle other than 45°, one side’s branches grow larger and the tree curls over. Animating the angle makes it sway as if in the wind.','直角三角形的角度不是45°時,一側的枝條會越長越大,形成捲曲的樣子。讓角度變化,就會像隨風搖曳。'],
+'H-ツリー':['長さを1/√2ずつ縮めながらH字を重ねます。中心からどの端点までも同じ距離で届くため、半導体チップのクロック配線に使われています。','H shapes are nested while shrinking by 1/√2. Every endpoint is the same distance from the center, so it is used for clock wiring on chips.','以1/√2的比例縮小並疊加H字。從中心到每個端點距離都相同,因此用於晶片的時脈佈線。'],
+'コラッツの木':['「偶数なら2で割り、奇数なら3倍して1を足す」を繰り返すと必ず1になるか、という未解決問題(コラッツ予想、1937年)が元です。1までの道のりを偶数と奇数で逆に曲げると、海藻のような形になります。','Based on the unsolved Collatz conjecture (1937): halve even numbers, triple odd ones and add 1; do you always reach 1? Bending each path to 1 one way for even and the other for odd makes a seaweed-like shape.','源自未解問題「考拉茲猜想」(1937年):偶數除以2、奇數乘3加1,是否一定會回到1?把到1的路徑依偶數與奇數往相反方向彎曲,就會形成海藻般的形狀。'],
+'アポロニウスのギャスケット':['古代ギリシャのアポロニウスが考えた「3つの円に接する円を求める問題」が元です。円の曲率(半径の逆数)はデカルトの円定理で計算でき、この配置ではすべて整数になります。','Rooted in Apollonius of Perga’s ancient problem of finding circles tangent to three others. Curvatures (1/radius) follow Descartes’ circle theorem, and in this layout every one is an integer.','源自古希臘阿波羅尼斯「求與三個圓相切之圓」的問題。圓的曲率(半徑倒數)可用笛卡兒圓定理計算,在這個配置中全都是整數。'],
+'フォードの円':['レスター・フォードが1938年に発表しました。分数p/qの上に半径1/(2q²)の円を置くと、どの円も重ならず、接するだけになります。','Published by Lester Ford in 1938. Place a circle of radius 1/(2q²) above each fraction p/q, and no two circles ever overlap. They only touch.','萊斯特・福特於1938年發表。在每個分數p/q上方放一個半徑1/(2q²)的圓,任兩個圓都不會重疊,只會相切。'],
+'シュタイナーの円鎖':['スイスの数学者ヤコブ・シュタイナーにちなみます。鎖が一周してぴったり閉じるなら、最初の円をどこに置いても必ず閉じる、という不思議な定理(ポリズム)があります。','Named after Swiss mathematician Jakob Steiner. His porism says that if the chain closes once, it closes no matter where you place the first circle.','以瑞士數學家雅各布・斯坦納命名。他的「不定性定理」指出:若圓鏈能剛好繞一圈閉合,那麼第一個圓放在哪裡都一定會閉合。'],
+'サークルパッキング':['円を重ならないように詰めていく、ジェネラティブアートの定番です。ランダムな位置を試して、入る最大の大きさを探すのを繰り返します。','A generative-art staple: pack circles without overlap. Try random positions and find the largest circle that fits, over and over.','生成藝術的經典手法:不重疊地塞入圓。反覆嘗試隨機位置,找出能放入的最大圓。'],
+'スピログラフ':['1965年にイギリスの技術者デニス・フィッシャーが発売した玩具で有名になりました。円の内側を歯車が転がり、ペン先が「ハイポトロコイド」という曲線を描きます。','Made famous by the toy launched by British engineer Denys Fisher in 1965. A gear rolls inside a ring and the pen traces a hypotrochoid.','因英國工程師丹尼斯・費雪於1965年推出的玩具而聞名。齒輪在圓環內滾動,筆尖畫出名為「內旋輪線」的曲線。'],
+'エピサイクロイド':['円の外側を別の円が転がるとき、周上の1点が描く軌跡です。2つの円の半径の比が整数なら、その数だけ尖りができます。','The path of a point on a circle rolling around the outside of another. When the radius ratio is an integer, you get that many cusps.','一個圓在另一個圓外側滾動時,圓周上一點的軌跡。兩圓半徑比為整數時,就會有那麼多個尖角。'],
+'カージオイド':['「心臓形」という意味で、同じ大きさの円どうしで描くエピサイクロイドです。円周上の一点から光を当てたときに、円形の鏡で反射した光が集まる形(コースティクス)もカージオイドになります。','Meaning “heart-shaped,” it is the epicycloid of two equal circles. Light from a point on a circular mirror reflects into this same caustic shape.','意思是「心臟形」,是兩個等大圓畫出的外擺線。從圓周上一點發光、經圓形鏡反射所聚成的焦散也是心臟線。'],
+'ネフロイド':['「腎臓形」という意味です。平行な光が円形の鏡で反射して集まる形(コースティクス)がネフロイドになり、日なたに置いたコーヒーカップの中にも見えます。','Meaning “kidney-shaped.” Parallel light reflected off a circular mirror gathers into a nephroid, which you can see inside a coffee cup in sunlight.','意思是「腎臟形」。平行光經圓形鏡反射聚成的焦散就是腎臟線,在陽光下的咖啡杯裡也看得到。'],
+'デルトイド':['3倍の大きさの円の内側を転がる円で描く曲線です。ギリシャ文字のΔ(デルタ)に似ていることから名付けられ、オイラーが1745年に研究しました。','Traced by a circle rolling inside one three times larger. Named for its resemblance to the Greek letter Δ, it was studied by Euler in 1745.','由在三倍大的圓內滾動的圓所畫出。因形似希臘字母Δ而得名,歐拉於1745年研究過。'],
+'アステロイド':['4倍の大きさの円の内側を転がる円で描く曲線です。壁に立てかけたはしごが滑り落ちるとき、はしごが通る範囲の境界もこの形になります。','Traced by a circle rolling inside one four times larger. The boundary swept by a ladder sliding down a wall has this same shape.','由在四倍大的圓內滾動的圓所畫出。靠在牆上的梯子滑落時,梯子掃過範圍的邊界也是這個形狀。'],
+'マウラーのバラ':['ピーター・マウラーが1987年に発表しました。ローズ曲線の上を一定の角度ずつ飛びながら直線で結ぶと、繊細な網目の花が浮かびます。','Introduced by Peter Maurer in 1987. Hop around a rose curve by a fixed angle, joining the points with straight lines, and a delicate mesh flower appears.','彼得・莫勒於1987年發表。沿著玫瑰線以固定角度跳躍並以直線相連,就會浮現細緻的網狀花朵。'],
+'ギョーシェ模様':['紙幣・パスポート・高級時計の文字盤に使われる装飾技法です。もとは「ローズエンジン」という機械式の旋盤で彫っていました。線が細かすぎて複製しにくいため、偽造防止にも役立ちます。','A decorative technique used on banknotes, passports and fine watch dials, originally cut on a mechanical “rose engine” lathe. The lines are too fine to copy easily, which also helps prevent forgery.','用於鈔票、護照與高級錶面的裝飾技法,原本以名為「玫瑰引擎」的機械車床雕刻。線條細到難以複製,也有助於防偽。'],
+'リサジュー曲線':['フランスの物理学者ジュール・アントワーヌ・リサジューが1857年、音叉の振動を光で可視化して研究しました。オシロスコープでおなじみの図形です。','Studied in 1857 by French physicist Jules Antoine Lissajous, who made tuning-fork vibrations visible with light. A familiar sight on oscilloscopes.','法國物理學家朱爾・安托萬・李薩如於1857年用光將音叉振動可視化並加以研究。是示波器上常見的圖形。'],
+'3Dリサジュー':['x・y・zの3方向に、それぞれ違う周波数の波を割り当てます。3つの周波数がどの2つも互いに素なら、結び目のような1本の閉じた曲線(リサジュー結び目)になります。','Assign a different frequency wave to each of x, y and z. When every pair of frequencies is coprime, you get a single closed knotted curve, a Lissajous knot.','為x、y、z三個方向分別指定不同頻率的波。三個頻率兩兩互質時,會形成一條閉合打結的曲線(李薩如紐結)。'],
+'ハーモノグラフ':['19世紀半ばに登場した、振り子にペンを付けて模様を描く装置です。摩擦で揺れがだんだん小さくなるので、模様は渦を巻きながら中心へ向かいます。','A mid-19th-century device that draws patterns with pens attached to pendulums. Friction slowly shrinks the swing, so the pattern spirals toward the center.','19世紀中葉出現、把筆裝在擺上畫圖的裝置。摩擦讓擺幅逐漸變小,圖樣便盤旋著朝中心收攏。'],
+'二重振り子':['振り子の先にもう1つ振り子をつないだだけで、動きが予測できなくなります。初期角度がほんのわずか違うだけで、まったく別の軌跡になるカオスの代表例です。','Attach one pendulum to the end of another and the motion becomes unpredictable. A tiny change in starting angle produces a completely different path, a classic example of chaos.','只是在擺的末端再接一個擺,運動就變得無法預測。初始角度稍有不同,軌跡就完全不同,是混沌的代表例子。'],
+'バラ曲線':['イタリアの数学者グイド・グランディが1720年代に研究しました。r = cos(kθ) で、kが整数なら奇数のときk枚、偶数のとき2k枚の花びらになります。','Studied by Italian mathematician Guido Grandi in the 1720s. For r = cos(kθ) with integer k, you get k petals when k is odd and 2k when it is even.','義大利數學家圭多・格蘭迪於1720年代研究。r = cos(kθ) 中,k為整數時,奇數有k片花瓣、偶數有2k片。'],
+'スーパーフォーミュラ':['ベルギーの植物学者ヨハン・ゲリスが2003年に発表しました。1つの式のパラメータを変えるだけで、ヒトデ・花・多角形など自然界の多くの形を表せます。','Published by Belgian botanist Johan Gielis in 2003. Changing the parameters of one formula produces starfish, flowers, polygons and many other natural forms.','比利時植物學家約翰・吉利斯於2003年發表。只要改變一個公式的參數,就能表現海星、花朵、多邊形等許多自然形狀。'],
+'スーパー楕円':['フランスの数学者ガブリエル・ラメが19世紀に研究した曲線(ラメ曲線)です。デンマークのピート・ハインが広場や家具のデザインに使い、角丸アイコンの「スクワークル」もこの仲間です。','A curve studied by French mathematician Gabriel Lamé in the 19th century. Danish designer Piet Hein used it for plazas and furniture, and rounded “squircle” icons belong to the same family.','法國數學家加布里埃爾・拉梅於19世紀研究的曲線(拉梅曲線)。丹麥的皮特・海恩將它用於廣場與家具設計,圓角圖示的「方圓形」也屬於同一家族。'],
+'バタフライ曲線':['テンプル・フェイが1989年に発表した極座標の曲線です。指数関数と三角関数を組み合わせるだけで、蝶の羽のような形が現れます。','A polar curve published by Temple Fay in 1989. Combining an exponential with trigonometric functions produces a butterfly-wing shape.','坦普・費伊於1989年發表的極座標曲線。只是組合指數函數與三角函數,就會出現蝴蝶翅膀的形狀。'],
+'ハート曲線':['定番の「ハートの方程式」の1つです。sinの3乗で横の丸みを、いくつかのcosの和で上のくぼみと下の尖りを作っています。','One of the classic heart equations. The cube of sin shapes the rounded sides, and a sum of cosines creates the top dip and bottom point.','經典的「愛心方程式」之一。以sin的三次方做出兩側的圓弧,以幾個cos的和做出上方凹陷與下方尖端。'],
+'トーラス結び目':['ドーナツ(トーラス)の表面を、穴の周りにp回、チューブの周りにq回巻きつく曲線です。pとqが互いに素なら1本の結び目になり、(2,3)はおなじみの三つ葉結び目です。','A curve that winds p times around a doughnut’s hole and q times around its tube. When p and q are coprime it forms a single knot; (2,3) is the familiar trefoil.','在甜甜圈(環面)表面,繞孔洞p圈、繞管身q圈的曲線。p與q互質時會形成一個紐結,(2,3)就是常見的三葉結。'],
+'フィロタキシス':['植物の葉や種の並び方のことです。ひまわりは約137.5°の「黄金角」ずつ回して種を置くことで、すき間なく詰めています。見える渦の本数は、34や55などのフィボナッチ数になります。','The arrangement of leaves and seeds in plants. Sunflowers place each seed about 137.5° (the golden angle) from the last, packing them without gaps. The visible spirals come in Fibonacci numbers such as 34 and 55.','指植物葉片與種子的排列方式。向日葵每顆種子旋轉約137.5°(黃金角)擺放,因而毫無空隙。看得到的螺臂數量是34、55等費波那契數。'],
+'対数らせん(黄金)':['ヤコブ・ベルヌーイが「驚異のらせん」と呼んだ曲線です。どこを拡大しても同じ形(自己相似)で、オウムガイの殻、台風、銀河の腕に近い形をしています。90°ごとに黄金比で広がるものを黄金らせんと呼びます。','The curve Jacob Bernoulli called the “marvelous spiral.” It looks the same at every scale and resembles nautilus shells, hurricanes and galaxy arms. When it widens by the golden ratio every 90°, it is called the golden spiral.','雅各布・白努利稱之為「神奇的螺線」。無論放大哪裡形狀都相同(自相似),近似鸚鵡螺殼、颱風與星系旋臂。每90°以黃金比擴展者稱為黃金螺線。'],
+'アルキメデスらせん':['アルキメデスが紀元前225年ごろ『らせんについて』で研究しました。回転とともに一定の速さで外へ広がるので、巻きの間隔が等しくなります。レコードの溝やゼンマイに近い形です。','Studied by Archimedes around 225 BC in On Spirals. It moves outward at a constant rate as it turns, so the turns are evenly spaced, like a record groove or a coiled spring.','阿基米德約於西元前225年在《論螺線》中研究。隨著旋轉以等速向外擴展,所以圈距相等,形狀接近唱片溝槽或發條。'],
+'フェルマーらせん':['r² = θ で表されるらせんで、1636年にフェルマーが研究しました。外へ行くほど巻きの間隔が詰まります。点を黄金角で並べるフィロタキシスのモデルにも使われています。','The spiral r² = θ, studied by Fermat in 1636. Its turns get closer together farther out. It is also the model behind phyllotaxis, where points sit at the golden angle.','以 r² = θ 表示的螺線,費馬於1636年研究。越往外圈距越緊密。以黃金角排列點的葉序模型也使用它。'],
+'リチュウス':['r² = 1/θ で表される曲線で、ロジャー・コーツが1722年に名付けました。ラテン語で「占い師の杖」という意味で、先が渦巻いた杖やバイオリンの渦巻きに似ています。','The curve r² = 1/θ, named by Roger Cotes in 1722. Latin for an augur’s curved staff, it resembles a crozier or the scroll of a violin.','以 r² = 1/θ 表示的曲線,羅傑・寇茲於1722年命名。拉丁文意為「占卜師的手杖」,形似頂端捲曲的手杖或小提琴的琴頭渦卷。'],
+'オイラーらせん':['進むほど一定の割合で曲がり方が強くなる曲線で、クロソイドとも呼ばれます。ハンドルを一定の速さで切るのと同じなので、道路や線路のカーブに使われています。','A curve whose curvature increases steadily with length, also called a clothoid. It matches turning a steering wheel at a constant rate, so roads and railways use it for curves.','曲率隨行進距離等比增強的曲線,又稱回旋曲線。等同以固定速度轉動方向盤,因此用於道路與鐵路的彎道。'],
+'掛け算の円 ×2':['円周上に点を並べ、i番目の点から i×2 番目の点へ線を引きます。掛ける数が2ならカージオイド、3ならネフロイドが浮かび上がります。YouTubeチャンネル「Mathologer」の動画で広く知られるようになりました。','Place points around a circle and join point i to point i×2. A multiplier of 2 reveals a cardioid, 3 a nephroid. It became widely known through the YouTube channel Mathologer.','在圓周上排列點,把第i個點連到第i×2個點。乘數為2時浮現心臟線,為3時浮現腎臟線。因YouTube頻道「Mathologer」的影片而廣為人知。'],
+'掛け算の円 ×37':['掛ける数が大きくなると、線の重なりから複雑な花や星の網目が現れます。数を少し変えるだけで模様ががらりと変わるので、アニメーション向きです。','With larger multipliers, complex flower and star meshes emerge from the overlapping lines. A small change in the number transforms the pattern, which makes it great to animate.','乘數變大時,線條交疊會出現複雜的花朵與星形網紋。數字稍一改變圖樣就大不相同,很適合做動畫。'],
+'ストリングアート':['直線だけで曲線の輪郭(包絡線)を浮かび上がらせる技法です。19世紀にメアリー・エベレスト・ブールが、子どもに幾何を教えるために考えた「カーブステッチ」が始まりとされます。','A technique where straight lines alone reveal a curve (their envelope). It is traced to the “curve stitching” Mary Everest Boole devised in the 19th century to teach children geometry.','只用直線就浮現曲線輪廓(包絡線)的技法。一般認為源自19世紀瑪麗・埃佛勒斯・布爾為教孩子幾何而設計的「曲線縫」。'],
+'追跡曲線(4匹の虫)':['正方形の角にいる4匹の虫が、それぞれ隣の虫に向かって同時に歩くと、全員がらせんを描いて中心で出会います。古くから知られる「ネズミの問題」です。','Four bugs at the corners of a square each walk toward their neighbor at the same time. All of them spiral in and meet at the center: the long-known “mice problem.”','站在正方形四角的四隻蟲同時朝鄰居走去,全員會畫著螺線在中心相遇。這是早已知名的「老鼠問題」。'],
+'スターポリゴン {17/7}':['n個の点をm個ずつ飛ばして結ぶ星形で、{n/m} と書きます。nとmが互いに素なら一筆書きでつながり、{5/2} がおなじみの五芒星です。','A star made by joining every m-th of n points, written {n/m}. When n and m are coprime it is drawn in one stroke; {5/2} is the familiar pentagram.','把n個點每隔m個相連而成的星形,記作{n/m}。n與m互質時可一筆畫完,{5/2}就是常見的五芒星。'],
+'フーリエ級数(エピサイクル)':['どんな閉じた形も、違う速さで回る円の組み合わせで描けます(フーリエ級数)。古代の天文学で惑星の動きを説明した「周転円」と同じ考え方です。','Any closed shape can be drawn by circles spinning at different speeds (a Fourier series). It is the same idea as the epicycles ancient astronomers used to explain planetary motion.','任何封閉形狀都能用以不同速度旋轉的圓組合畫出(傅立葉級數)。這與古代天文學用來解釋行星運動的「本輪」是同一個想法。'],
+'矩形波のフーリエ合成':['1倍・3倍・5倍…と奇数倍の周波数のサイン波を、1、1/3、1/5…の振幅で重ねると四角い波に近づきます。角に残る小さな波打ちは「ギブス現象」と呼ばれ、いくら重ねても消えません。','Adding sine waves at 1×, 3×, 5×… the frequency with amplitudes 1, 1/3, 1/5… approaches a square wave. The small ripple left at each corner is the Gibbs phenomenon, and it never fully disappears.','把1倍、3倍、5倍…等奇數倍頻率的正弦波,以1、1/3、1/5…的振幅疊加,就會接近方波。角落殘留的小波紋稱為「吉布斯現象」,怎麼疊加都不會消失。'],
+'クラドニ図形':['ドイツの物理学者エルンスト・クラドニが1787年に発表しました。砂をまいた金属板を弓でこすると、振動しない場所(節)に砂が集まって模様ができます。','Published by German physicist Ernst Chladni in 1787. Bow a metal plate sprinkled with sand and the sand gathers along the still lines (nodes), forming patterns.','德國物理學家恩斯特・克拉德尼於1787年發表。用琴弓摩擦撒了沙的金屬板,沙子會聚集在不振動的節線上,形成圖樣。'],
+'ローレンツ・アトラクター':['気象学者エドワード・ローレンツが1963年、大気の対流を単純化した式から発見しました。「バタフライ効果」という言葉の由来にもなった、カオスの代表例です。','Discovered in 1963 by meteorologist Edward Lorenz in simplified equations for atmospheric convection. The classic example of chaos and the origin of the phrase “butterfly effect.”','氣象學家愛德華・勞倫茲於1963年,從簡化的大氣對流方程式中發現。是混沌的代表例子,也是「蝴蝶效應」一詞的由來。'],
+'クリフォード・アトラクター':['科学作家クリフォード・ピックオーバーにちなむ2次元の写像です。sinとcosだけの式を数百万回繰り返し、点が多く集まる場所を明るくすると、煙や布のような形が現れます。','A 2-D map named after science writer Clifford Pickover. Iterate a formula of only sines and cosines millions of times, brighten where points pile up, and smoke- or cloth-like forms appear.','以科學作家克利福德・皮寇弗命名的二維映射。把只有sin與cos的式子迭代數百萬次,讓點聚集處變亮,就會出現煙霧或布料般的形狀。'],
+'de Jong アトラクター':['ピーター・デ・ヨングの名がついた2次元の写像です。4つの係数を少し変えるだけで、形が劇的に変わります。','A 2-D map bearing Peter de Jong’s name. Small changes to its four coefficients transform the shape dramatically.','以彼得・德容命名的二維映射。四個係數稍一改變,形狀就劇烈變化。'],
+'レスラー・アトラクター':['ドイツの生化学者オットー・レスラーが1976年に考案しました。ローレンツよりさらに単純な式でも、カオスが生まれることを示しました。','Devised by German biochemist Otto Rössler in 1976, showing that chaos can arise from equations even simpler than Lorenz’s.','德國生物化學家奧托・若斯樂於1976年設計,證明比勞倫茲更簡單的式子也能產生混沌。'],
+'Aizawa アトラクター':['日本の研究者・相澤洋二の名にちなむとされるアトラクターです。球の表面を回りながら、中心の筒を通って上下に抜けていきます。','An attractor generally credited to Japanese researcher Yoji Aizawa. The orbit circles the surface of a sphere and escapes up and down through a central tube.','一般認為以日本研究者相澤洋二命名的吸引子。軌道沿著球面繞行,再穿過中央的管子上下竄出。'],
+'エノン写像':['フランスの天文学者ミシェル・エノンが1976年、ローレンツ・アトラクターを単純化した2次元の写像として発表しました。拡大すると、1本に見える線が何重にも分かれています。','Published in 1976 by French astronomer Michel Hénon as a 2-D simplification of the Lorenz attractor. Zoom in and each seemingly single line splits into many.','法國天文學家米歇爾・埃農於1976年發表,作為勞倫茲吸引子的二維簡化。放大後,看似一條的線其實分成好多層。'],
+'池田写像':['池田研介が1979年、レーザー光が共振器の中を回る様子のモデルとして提案した写像です。係数uを上げると渦が育ち、0.9を超えると1点に収束します。','Proposed by Kensuke Ikeda in 1979 as a model of light circulating in an optical resonator. Raising u grows the swirl; above about 0.9 it collapses to a single point.','池田研介於1979年提出,作為光在共振腔中循環的模型。提高係數u漩渦會長大,超過約0.9則收斂成一點。'],
+'ティンカーベル写像':['由来ははっきりしませんが、点が飛び回った跡が妖精の飛跡のように見えることから、この名で呼ばれている2次元のカオス写像です。','A 2-D chaotic map of uncertain origin, named because the trail of its points looks like a flying fairy’s path.','名稱由來不明的二維混沌映射,因點的飛行軌跡看起來像小精靈飛過的痕跡而得名。'],
+'標準写像':['ボリス・チリコフらが研究した、周期的に「蹴られる」回転体のモデルです。Kが小さいと規則的な波の帯ができ、K≈0.97で最後の帯が壊れ、それより大きいとカオスの海が広がります。','A model of a periodically kicked rotor studied by Boris Chirikov and others. Small K gives orderly bands; around K ≈ 0.97 the last band breaks, and beyond that a chaotic sea spreads.','鮑里斯・奇里科夫等人研究、週期性被「踢」的旋轉體模型。K小時形成規則的波帶,K≈0.97時最後一條帶破裂,更大時混沌之海擴散。'],
+'ロジスティック写像の分岐図':['生物学者ロバート・メイが1976年に広めた、個体数の増減を表す式 x → rx(1−x) です。rを上げると周期が2、4、8…と倍々に分かれ、約3.57からカオスになります。','The population model x → rx(1−x), popularized by biologist Robert May in 1976. As r rises the cycle splits into 2, 4, 8… and turns chaotic at about 3.57.','生物學家羅伯特・梅於1976年推廣、描述族群增減的式子 x → rx(1−x)。r增加時週期依2、4、8…倍增分岔,約3.57起進入混沌。'],
+'マンデルブロ集合':['ブノワ・マンデルブロが1980年ごろ、コンピューターで描いて広めました。z → z² + c を繰り返しても発散しない c の集まりで、縁をどこまで拡大しても新しい模様が現れます。','Brought to fame by Benoit Mandelbrot around 1980 using computer graphics. It is the set of c for which z → z² + c never escapes, and its edge reveals new detail at every zoom.','本華・曼德博於1980年左右以電腦繪製而推廣。它是反覆 z → z² + c 也不會發散的c之集合,邊緣無論放大多少都會出現新的圖樣。'],
+'ジュリア集合':['ガストン・ジュリアが1918年に研究しました。マンデルブロ集合と同じ式で c を固定し、z の初期値を動かします。c がマンデルブロ集合の内側ならつながった形、外側なら塵のような形になります。','Studied by Gaston Julia in 1918. Same formula as the Mandelbrot set, but c is fixed and the starting z varies. If c lies inside the Mandelbrot set the shape is connected; outside, it is dust.','加斯東・朱利亞於1918年研究。使用與曼德博集合相同的式子,但固定c、改變z的初始值。c在曼德博集合內時形狀相連,在外則如塵埃散落。'],
+'バーニングシップ':['1992年にミヒャエル・ミヒェリッチとオットー・レスラーが発表した、マンデルブロ集合の変種です。計算の途中で絶対値を取るだけで、燃える船のような姿が現れます。','A Mandelbrot variant published in 1992 by Michael Michelitsch and Otto Rössler. Simply taking absolute values during the calculation reveals a burning ship.','1992年由米夏埃爾・米赫利奇與奧托・若斯樂發表的曼德博集合變體。只在計算中取絕對值,就會出現燃燒中的船。'],
+'ニュートン・フラクタル':['方程式の解に近づく計算法(ニュートン法)で、どの解にたどり着くかによって色分けしたものです。z³ − 1 = 0 の3つの解の境界では、どこを拡大しても3色すべてが接しています。','Color each starting point by which root Newton’s method converges to. On the borders between the three roots of z³ − 1 = 0, all three colors meet at every scale.','以求方程式解的牛頓法,依起點最後收斂到哪個根來上色。在 z³ − 1 = 0 三個根的邊界上,無論放大哪裡,三種顏色都相接。'],
+'等高線':['地図の等高線と同じく、同じ高さの点を結んだ線です。高さを表す関数を少しずつ動かすと、線が生き物のようにうねります。計算には「マーチングスクエア法」を使います。','Like contour lines on a map, they join points of equal height. Shift the height function slowly and the lines writhe like living things. They are computed with marching squares.','與地圖上的等高線相同,連接同高度的點。讓表示高度的函數緩慢變化,線條就會像生物般蠕動。計算使用「行進方塊法」。'],
+'ウラムのらせん':['数学者スタニスワフ・ウラムが1963年、退屈な講演中の落書きで発見したと言われます。数をらせん状に並べて素数に印を付けると、なぜか斜めの線が浮かび上がります。','Mathematician Stanisław Ulam reportedly found it in 1963 while doodling during a dull talk. Write numbers in a spiral, mark the primes, and diagonal lines mysteriously appear.','據說數學家斯塔尼斯瓦夫・烏拉姆於1963年在一場無聊的演講中塗鴉時發現。把數字排成螺旋並標出質數,不知為何會浮現斜線。'],
+'レカマン数列':['コロンビアの数学者ベルナルド・レカマンにちなむ数列です。「前の数からnを引く(正の数で、まだ出ていなければ)、だめならnを足す」を繰り返します。半円で結ぶ描き方は、YouTubeの「Numberphile」で有名になりました。','A sequence named after Colombian mathematician Bernardo Recamán: subtract n from the previous term if the result is positive and new, otherwise add n. Drawing it with semicircles became famous through Numberphile on YouTube.','以哥倫比亞數學家貝爾納多・雷卡曼命名的數列:若前一項減n為正且未出現過就減,否則加n。以半圓連接的畫法因YouTube頻道「Numberphile」而出名。'],
+'パスカルの三角形 mod 5':['パスカルの三角形の各数を5で割った余りで色分けすると、5分割の自己相似模様が現れます。2で割ればシェルピンスキーの三角形そのものになります。','Color Pascal’s triangle by each number’s remainder mod 5 and a five-fold self-similar pattern appears. Mod 2, it becomes the Sierpiński triangle itself.','把帕斯卡三角形的每個數以除以5的餘數上色,就會出現五分割的自相似圖樣。除以2時,就是謝爾賓斯基三角形本身。']
+};
+
+const UI={
+ja:{title:'ジェネラティブアート図鑑',lead:'After Effectsで作れる数学系の手法を11系統・79種にまとめました。図版はすべてブラウザ上で計算して描いています。カードを押すと上に大きく表示されてアニメーションで再生され、その下に解説、AEでの作り方、Claude Code用のプロンプトが表示されます。',look:'見た目の特徴',use:'映像での使い道',expl:'解説',draw:'描画アニメ',move:'動きアニメ',stop:'停止',prev:'前の手法',next:'次の手法',rand:'ランダムに表示',tabE:'AEでの作り方',tabP:'Claude Code用プロンプト',copy:'コピー',copied:'コピーしました',selected:'選択しました。Cmd+Cでコピー',count:'種',mvTag:'動きあり',lookS:'見た目',useS:'使い道',mvP:'動き: ',drawN:'描画: 描く順番どおりに線や図形を表示(トリムパス風)',drawOnly:'このアートは描画アニメで再生できます',meth:'方法: ',promptNote:'Claude Codeにそのまま貼り付けると、コントローラー付きでAE用のツールを作ってもらえます。',useP:' 作るときは「Claude Code用プロンプト」タブの内容を使うのがおすすめです。',howExpr:'シェイプレイヤーにパスを1つ作り(ペンツールで1点打つだけでOK)、「線」を追加して塗りはなしにします。「パス」のストップウォッチをOption+クリックして、下のエクスプレッションを貼り付けてください。スライダー名は大文字・小文字まで一致させます。',howIndex:'ヌルレイヤー「CTRL」を一番上に作り、スライダーを追加します。小さな円などのシェイプレイヤーを作って、指定のプロパティに貼り付けてから、そのレイヤーを必要な数だけ複製(Cmd+D)してください。',footer:'描画アニメはAfter Effectsのトリムパスのように、線や図形を描く順番どおりに表示します。動きアニメは、AEならキーフレームやエクスプレッションで動かすパラメータを変化させています。フラクタル画像やアトラクターは計算量が多いため、動きアニメが少しゆっくりになることがあります。',aria:'を拡大して再生',nav:'系統',big:'選んだ手法の拡大図版'},
+en:{title:'Generative Art Field Guide',lead:'79 mathematical techniques in 11 families that you can build in After Effects. Every plate is computed and drawn live in your browser. Click a card to enlarge and animate it, with an explanation, how to build it in AE, and a prompt for Claude Code below.',look:'What it looks like',use:'Uses in video',expl:'Background',draw:'Draw-on',move:'Motion',stop:'Stop',prev:'Previous',next:'Next',rand:'Random',tabE:'Build it in AE',tabP:'Prompt for Claude Code',copy:'Copy',copied:'Copied',selected:'Selected. Press Cmd+C to copy',count:'',mvTag:'Motion',lookS:'Look',useS:'Uses',mvP:'Motion: ',drawN:'Draw-on: lines and shapes appear in drawing order (like Trim Paths)',drawOnly:'This one plays as a draw-on animation',meth:'Method: ',promptNote:'Paste this into Claude Code and it will build an AE tool with controllers for you.',useP:' To build it, the “Prompt for Claude Code” tab is the recommended route.',howExpr:'Create one path on a shape layer (a single pen-tool click is enough), add a Stroke and no Fill. Option-click the Path stopwatch and paste the expression below. Slider names must match exactly, including case.',howIndex:'Create a null named “CTRL” at the top and add the sliders. Make a small shape layer (e.g. a circle), paste the expression into the given property, then duplicate that layer as many times as needed (Cmd+D).',footer:'Draw-on shows lines and shapes in the order they are drawn, like After Effects Trim Paths. Motion animates the parameters you would keyframe or drive with expressions in AE. Fractal images and attractors are compute-heavy, so their motion may run a little slower.',aria:': enlarge and play',nav:'Families',big:'Enlarged plate of the selected technique'},
+zh:{title:'生成藝術圖鑑',lead:'整理了79種可在After Effects中製作的數學手法,分為11大類。所有圖版都在瀏覽器中即時計算繪製。點選卡片即可在上方放大並以動畫播放,下方會顯示解說、在AE中的做法,以及給Claude Code的提示詞。',look:'外觀特徵',use:'影像中的用途',expl:'解說',draw:'描繪動畫',move:'動態動畫',stop:'停止',prev:'上一個',next:'下一個',rand:'隨機顯示',tabE:'在AE中的做法',tabP:'Claude Code提示詞',copy:'複製',copied:'已複製',selected:'已選取,請按Cmd+C複製',count:'種',mvTag:'有動態',lookS:'外觀',useS:'用途',mvP:'動態: ',drawN:'描繪: 依繪製順序顯示線條與圖形(類似修剪路徑)',drawOnly:'這件作品可用描繪動畫播放',meth:'方法: ',promptNote:'直接貼到Claude Code,就能請它做出附控制器的AE工具。',useP:' 製作時建議使用「Claude Code提示詞」分頁的內容。',howExpr:'在形狀圖層建立一條路徑(用鋼筆工具點一下即可),加入「筆畫」、不要填色。按住Option並按一下「路徑」的碼錶,貼上下方的運算式。滑桿名稱需完全一致(包括大小寫)。',howIndex:'在最上層建立名為「CTRL」的Null圖層並加入滑桿。建立小圓等形狀圖層,把運算式貼到指定屬性,再將該圖層複製到需要的數量(Cmd+D)。',footer:'描繪動畫會像After Effects的修剪路徑一樣,依繪製順序顯示線條與圖形。動態動畫則是改變在AE中會用關鍵影格或運算式驅動的參數。碎形影像與吸引子計算量大,動態動畫可能會稍慢。',aria:':放大並播放',nav:'分類',big:'所選手法的放大圖版'}};
+
+let LANG='ja';
+const TRM={en:new Map(),zh:new Map()};TR.forEach(r=>{TRM.en.set(r[0],r[1]);TRM.zh.set(r[0],r[2])});
+const tr=s=>LANG==='ja'||s==null?s:(TRM[LANG].get(s)??s);
+let TRKEYS=null;
+function trCode(code){if(LANG==='ja')return code;if(!TRKEYS)TRKEYS=TR.map(r=>r[0]).filter(k=>k.length>1).sort((a,b)=>b.length-a.length);const M=TRM[LANG];let out=code;for(const k of TRKEYS)if(out.indexOf(k)>=0)out=out.split(k).join(M.get(k));return out.replace(/  … /g,'  … ')}
+const U=k=>UI[LANG][k];
+
+const PT={
+ja:{intro:n=>`After Effects用に、ジェネラティブアート「${n}」を作るツールを作ってください。`,want:'## 作りたいもの',look:'- 見た目: ',use:'- 映像での使い道: ',bg:'- 背景: ',how:'## 作り方',ref:'- 参考に、形を作るエクスプレッションの例を下に付けます。これをもとに、コントローラーとセットで自動生成してください。',pExt:'## パラメータ(Pythonスクリプトの引数で指定できるように)',pCtl:'## コントローラー(AE上で数値を動かして調整できるように)',par:(q)=>`- ${q[0]}: ${q[2]}(初期値 ${q[1]}${q[3]?'、範囲 '+q[3]:''})`,stroke:'- 線の色・線幅・塗り・不透明度は、シェイプの「線」「塗り」から変えられるようにする',anim:'## アニメーション',mv:d=>`- ${d}。該当するパラメータにキーフレームを打つか、time を使うエクスプレッションで動かせるようにし、サンプルとして5秒のループを1つ設定しておく`,trim:'- 線を描いていく動きを付けられるよう、トリムパスを追加しておく(初期状態は終了100%)',extA:'- 時間で変化させるパラメータがある場合は、フレームごとに値を補間して連番に反映する',req:'## 要件',ae:'- After Effects 2024以降、エクスプレッションエンジンはJavaScript',py:['- Python 3 + numpy + Pillow を使用。必要なライブラリは requirements.txt にまとめる','- 書き出し先フォルダ、解像度(初期値1920×1080)、フレーム数を引数で指定できるようにする','- 書き出した連番をAEに読み込むExtendScript(.jsx)も作り、フレームレートを指定してアクティブなコンポに配置する','- 計算が重いので、進捗をターミナルに表示する'],jsx:'- ExtendScript(.jsx)として作り、「ファイル > スクリプト > スクリプトファイルを実行」で、アクティブなコンポに一式が生成されるようにする',ctrl:n=>`- コントローラーは「${n}_CTRL」という名前のヌルレイヤーにまとめ、「スライダー制御」エフェクトで作る。シェイプ側のエクスプレッションはそこを参照する`,undo:'- 全体をアンドゥ1回で取り消せるように、app.beginUndoGroup / endUndoGroup で囲む',cmt:'- コードには日本語でコメントを入れる',fin:'- 完成したら、どのパラメータを動かすと何が変わるかを短く説明する',refH:'## 参考エクスプレッション'},
+en:{intro:n=>`Please build a tool for After Effects that creates the generative art “${n}”.`,want:'## What I want',look:'- Look: ',use:'- Uses in video: ',bg:'- Background: ',how:'## Approach',ref:'- A reference expression that builds the shape is attached below. Use it as the basis and generate it automatically together with the controllers.',pExt:'## Parameters (settable as arguments of the Python script)',pCtl:'## Controllers (adjustable by changing values in AE)',par:(q)=>`- ${q[0]}: ${q[2]} (default ${q[1]}${q[3]?', range '+q[3]:''})`,stroke:'- Stroke color, stroke width, fill and opacity can be changed from the shape’s Stroke and Fill',anim:'## Animation',mv:d=>`- ${d}. Make it animatable by keyframing the relevant parameter or with a time-based expression, and set up one 5-second loop as a sample`,trim:'- Add Trim Paths so the line can be drawn on (End at 100% by default)',extA:'- If a parameter changes over time, interpolate it per frame and reflect it in the sequence',req:'## Requirements',ae:'- After Effects 2024 or later, JavaScript expression engine',py:['- Use Python 3 + numpy + Pillow, with the required libraries listed in requirements.txt','- Output folder, resolution (default 1920×1080) and frame count can be set as arguments','- Also write an ExtendScript (.jsx) that imports the exported sequence into AE at a given frame rate and places it in the active comp','- The computation is heavy, so show progress in the terminal'],jsx:'- Build it as an ExtendScript (.jsx) that generates everything in the active comp via File > Scripts > Run Script File',ctrl:n=>`- Put the controllers on a null layer named “${n}_CTRL” using Slider Control effects, and have the shape expressions reference it`,undo:'- Wrap everything in app.beginUndoGroup / endUndoGroup so a single undo reverts it',cmt:'- Comment the code in English',fin:'- When done, briefly explain which parameter changes what',refH:'## Reference expression'},
+zh:{intro:n=>`請為After Effects製作一個能產生生成藝術「${n}」的工具。`,want:'## 想做的東西',look:'- 外觀: ',use:'- 影像中的用途: ',bg:'- 背景: ',how:'## 做法',ref:'- 下方附上產生形狀的運算式範例作為參考。請以此為基礎,連同控制器一起自動產生。',pExt:'## 參數(可用Python指令碼的引數指定)',pCtl:'## 控制器(可在AE上調整數值)',par:(q)=>`- ${q[0]}: ${q[2]}(預設值 ${q[1]}${q[3]?'、範圍 '+q[3]:''})`,stroke:'- 線條顏色、線寬、填色與不透明度,可從形狀的「筆畫」「填色」修改',anim:'## 動畫',mv:d=>`- ${d}。讓相關參數可用關鍵影格或使用 time 的運算式驅動,並設定一個5秒的循環作為範例`,trim:'- 加入修剪路徑以便做描繪動畫(預設結束為100%)',extA:'- 若有隨時間變化的參數,請逐格內插並反映在序列中',req:'## 需求',ae:'- After Effects 2024以上,運算式引擎為JavaScript',py:['- 使用 Python 3 + numpy + Pillow,所需套件整理在 requirements.txt','- 輸出資料夾、解析度(預設1920×1080)、影格數可用引數指定','- 另外製作一個 ExtendScript(.jsx),以指定影格速率把輸出的序列匯入AE並放進目前的構圖','- 計算量大,請在終端機顯示進度'],jsx:'- 以 ExtendScript(.jsx)製作,執行「檔案 > 指令碼 > 執行指令碼檔案」即可在目前的構圖產生整組內容',ctrl:n=>`- 控制器集中在名為「${n}_CTRL」的Null圖層,用「滑桿控制」效果製作,形狀端的運算式參照它`,undo:'- 整體用 app.beginUndoGroup / endUndoGroup 包起來,一次復原即可取消',cmt:'- 程式碼以繁體中文撰寫註解',fin:'- 完成後,簡短說明調整哪個參數會改變什麼',refH:'## 參考運算式'}};
+function buildPrompt(o){const a=o.ae,P=PT[LANG],Pm=(a.p||exprParams(a.code||'')).map(q=>[q[0],q[1],tr(q[2]),q[3]?tr(q[3]):'']),isExt=a.m==='ext',name=tr(o.n),L=[];
+L.push(P.intro(name),'',P.want,P.look+tr(o.v),P.use+tr(o.u),P.bg+EXPL[o.n][LANG==='ja'?0:LANG==='en'?1:2],'',P.how,'- '+tr(METH[a.m].p));
+if(a.m==='expr'||a.m==='index')L.push(P.ref);
+L.push('',isExt?P.pExt:P.pCtl);Pm.forEach(q=>L.push(P.par(q)));if(!isExt)L.push(P.stroke);
+L.push('',P.anim);if(o.mv)L.push(P.mv(tr(o.mv.d)));if(!isExt)L.push(P.trim);else L.push(P.extA);
+L.push('',P.req,P.ae);if(isExt)L.push(...P.py);else{L.push(P.jsx);if(a.m!=='script')L.push(P.ctrl(name.replace(/[^\w぀-鿿]+/g,'_')));L.push(P.undo)}
+L.push(P.cmt,P.fin);if(a.code)L.push('',P.refH,'```javascript',trCode(a.code),'```');return L.join('\n')}
+
+const ALL=[];SEC.forEach(s=>s.it.forEach(i=>ALL.push({n:i[0],v:i[1],u:i[2],f:i[3],mv:i[4]||i[3].mv||null,col:s.c,sec:s.t,sid:s.id,ae:AE[i[0]]})));
+ALL.forEach(o=>{if(o.ae&&o.ae.ref){const r=AE[o.ae.ref];o.ae={m:r.m,code:r.code.replace('//   K = 2  …','//   K = 37  …'),note2:o.ae.note2}}});
+
+let idx=0;
+document.getElementById('main').innerHTML=SEC.map(s=>`<section id="${s.id}" style="--c:${s.c};margin-bottom:48px"><div class="sh"><h2></h2><span></span></div><div class="grid">${s.it.map(()=>{const k=idx++;return`<button class="card" data-i="${k}"><canvas width="360" height="360" data-i="${k}"></canvas><b><span class="cn"></span><small class="cm"></small></b><p><i class="cl"></i><span class="cv"></span></p><p style="margin-top:4px"><i class="cu"></i><span class="cuu"></span></p></button>`}).join('')}</div></section>`).join('');
+function applyLang(){document.documentElement.lang=LANG==='zh'?'zh-Hant':LANG;document.title=U('title');document.querySelectorAll('[data-u]').forEach(el=>el.textContent=U(el.dataset.u));document.querySelectorAll('.lang button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.l===LANG));document.getElementById('navEl').setAttribute('aria-label',U('nav'));big.setAttribute('aria-label',U('big'));
+document.getElementById('nav').innerHTML=SEC.map(s=>`<a href="#${s.id}" style="--c:${s.c}">${tr(s.t)}</a>`).join('');
+SEC.forEach(s=>{const sec=document.getElementById(s.id);sec.querySelector('.sh h2').textContent=tr(s.t);sec.querySelector('.sh span').textContent=s.it.length+(U('count')?U('count'):' techniques')});
+document.querySelectorAll('.card').forEach(b=>{const o=ALL[+b.dataset.i];b.setAttribute('aria-label',(LANG==='en'?tr(o.n)+U('aria'):tr(o.n)+U('aria')));b.querySelector('.cn').textContent=tr(o.n);const m=b.querySelector('.cm');m.textContent=o.mv?U('mvTag'):'';m.hidden=!o.mv;b.querySelector('.cl').textContent=U('lookS');b.querySelector('.cv').textContent=tr(o.v);b.querySelector('.cu').textContent=U('useS');b.querySelector('.cuu').textContent=tr(o.u)});
+heroText();showHow();note()}
+
+function prep(c,S,col){c.setTransform(1,0,0,1,0,0);c.globalAlpha=1;c.clearRect(0,0,S,S);c.strokeStyle=c.fillStyle=col;c.lineWidth=S/300*1.2;c.lineJoin='round';c.lineCap='round';c.imageSmoothingEnabled=true}
+function render(cv,i){const S=cv.width,c=cv.getContext('2d'),o=ALL[i];prep(c,S,o.col);try{o.f(c,S,o.col)}catch(e){console.error(o.n,e)}}
+
+const IMGU=400;
+function record(o,S){const ops=[];const px=new Proxy({},{get(t,k){if(k==='createImageData')return(w,h)=>({width:w,height:h,data:new Uint8ClampedArray(w*h*4)});return(...a)=>{ops.push([k,a])}},set(t,k,v){ops.push(['=',[k,v]]);return true}});px.strokeStyle=o.col;px.fillStyle=o.col;px.lineWidth=S/300*1.2;try{o.f(px,S,o.col)}catch(e){console.error(o.n,e)}let u=0;for(const[k]of ops){if(k==='lineTo'||k==='arc'||k==='fillRect'||k==='strokeRect')u++;else if(k==='putImageData')u+=IMGU}return{ops,u}}
+function replay(c,ops,budget){let used=0;for(let i=0;i<ops.length;i++){const[k,a]=ops[i];if(k==='='){c[a[0]]=a[1];continue}if(k==='lineTo'||k==='arc'){if(used>=budget){for(let j=i;j<ops.length;j++){const kk=ops[j][0];if(kk==='stroke'||kk==='fill'){c[kk]();break}if(kk==='beginPath')break}return}used++;c[k](...a);continue}if(k==='fillRect'||k==='strokeRect'){if(used>=budget)return;used++;c[k](...a);continue}if(k==='putImageData'){const im=a[0];if(!im._r)im._r=new ImageData(im.data,im.width,im.height);const h=Math.floor(im.height*Math.min(1,(budget-used)/IMGU));if(h<=0)return;c.putImageData(im._r,a[1],a[2],0,0,im.width,h);used+=IMGU;if(used>budget)return;continue}if(typeof c[k]==='function')c[k](...a)}}
+
+const big=document.getElementById('big'),bc=big.getContext('2d'),BS=big.width,hero=document.getElementById('hero'),bD=document.getElementById('bDraw'),bM=document.getElementById('bMove'),bS=document.getElementById('bStop'),hM=document.getElementById('hM');
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let cur=0,raf=0,mode='',rec=null,mvFn=null,t0=0,vis=true;
+const recCache=new Map();
+function setBtns(){bD.classList.toggle('on',mode==='draw');bM.classList.toggle('on',mode==='move');bM.hidden=!ALL[cur].mv;bD.setAttribute('aria-pressed',mode==='draw');bM.setAttribute('aria-pressed',mode==='move')}
+function note(){const o=ALL[cur];hM.textContent=mode==='move'?U('mvP')+tr(o.mv.d):mode==='draw'?U('drawN'):o.mv?U('mvP')+tr(o.mv.d):U('drawOnly')}
+function stop(){cancelAnimationFrame(raf);raf=0;mode='';setBtns();note()}
+function frame(now){raf=requestAnimationFrame(frame);if(!vis)return;const o=ALL[cur],t=Math.max(0,(now-t0)/1000);prep(bc,BS,o.col);try{if(mode==='draw'){const dur=Math.min(6,2.5+Math.log10(1+rec.u)*.9),p=Math.min(1,t/dur),e=p<.5?2*p*p:1-2*(1-p)*(1-p);replay(bc,rec.ops,rec.u*e+.5);if(t>dur+1.6)t0=now}else mvFn(bc,t)}catch(err){console.error(o.n,err);stop();render(big,cur)}}
+function play(m){cancelAnimationFrame(raf);const o=ALL[cur];mode=m;if(m==='draw'){if(!recCache.has(cur)){if(recCache.size>6)recCache.delete(recCache.keys().next().value);recCache.set(cur,record(o,BS))}rec=recCache.get(cur)}else mvFn=o.mv.a(BS,o.col);t0=performance.now();setBtns();note();raf=requestAnimationFrame(frame)}
+function heroText(){const o=ALL[cur];document.getElementById('hTag').textContent=tr(o.sec);document.getElementById('hName').textContent=tr(o.n);document.getElementById('hV').textContent=tr(o.v);document.getElementById('hU').textContent=tr(o.u);document.getElementById('hX').textContent=EXPL[o.n][LANG==='ja'?0:LANG==='en'?1:2]}
+function feature(i,scroll){stop();cur=(i+ALL.length)%ALL.length;const o=ALL[cur];hero.style.setProperty('--c',o.col);document.getElementById('how').style.setProperty('--c',o.col);heroText();setBtns();note();showHow();if(scroll)hero.scrollIntoView({block:'start'});if(reduce)requestAnimationFrame(()=>render(big,cur));else setTimeout(()=>play(o.mv?'move':'draw'),30)}
+
+let tab='E';const tE=document.getElementById('tE'),tP=document.getElementById('tP'),howMeta=document.getElementById('howMeta'),howPre=document.getElementById('howPre'),howCode=document.getElementById('howCode'),cpy=document.getElementById('copy');
+function showHow(){const o=ALL[cur],a=o.ae;tE.setAttribute('aria-selected',tab==='E');tP.setAttribute('aria-selected',tab==='P');howMeta.innerHTML='';const tg=document.createElement('span');tg.className='tag';tg.textContent=U('meth')+tr(METH[a.m].l);howMeta.appendChild(tg);let msg='',txt='';
+if(tab==='P'){msg=U('promptNote');txt=buildPrompt(o)}
+else if(a.code){msg=(a.note2?tr(a.note2)+' ':'')+U(a.m==='index'?'howIndex':'howExpr');txt=trCode(a.code)}
+else{msg=tr(a.note)+U('useP')}
+howMeta.appendChild(document.createTextNode(msg));howCode.textContent=txt;howPre.hidden=!txt;howPre.classList.toggle('wrap',tab==='P');cpy.hidden=!txt;cpy.textContent=U('copy')}
+tE.onclick=()=>{tab='E';showHow()};tP.onclick=()=>{tab='P';showHow()};
+cpy.onclick=async()=>{const t=howCode.textContent;try{await navigator.clipboard.writeText(t);cpy.textContent=U('copied')}catch(e){const r=document.createRange();r.selectNodeContents(howCode);const s=getSelection();s.removeAllRanges();s.addRange(r);cpy.textContent=U('selected')}setTimeout(()=>cpy.textContent=U('copy'),2200)};
+bD.onclick=()=>play('draw');bM.onclick=()=>{if(ALL[cur].mv)play('move')};bS.onclick=()=>{stop();render(big,cur)};
+document.getElementById('prev').onclick=()=>feature(cur-1);
+document.getElementById('next').onclick=()=>feature(cur+1);
+document.getElementById('rand').onclick=()=>feature((Math.random()*ALL.length)|0);
+document.querySelectorAll('.card').forEach(b=>b.addEventListener('click',()=>feature(+b.dataset.i,true)));
+if('IntersectionObserver' in window){const hv=new IntersectionObserver(es=>{vis=es[0].isIntersecting});hv.observe(big)}
+
+const queue=[];let busy=false;
+function pump(){if(busy)return;busy=true;const step=()=>{const t=performance.now();while(queue.length&&performance.now()-t<20){const cv=queue.shift();render(cv,+cv.dataset.i)}if(queue.length)requestAnimationFrame(step);else busy=false};requestAnimationFrame(step)}
+const cvs=document.querySelectorAll('.card canvas');
+if('IntersectionObserver' in window){const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){io.unobserve(e.target);queue.push(e.target)}});pump()},{rootMargin:'400px'});cvs.forEach(cv=>io.observe(cv))}else{cvs.forEach(cv=>queue.push(cv));pump()}
+try{const sv=localStorage.getItem('gaLang');LANG=sv&&UI[sv]?sv:(/^zh/i.test(navigator.language)?'zh':/^ja/i.test(navigator.language)?'ja':'en')}catch(e){LANG=/^zh/i.test(navigator.language)?'zh':/^ja/i.test(navigator.language)?'ja':'en'}
+document.querySelectorAll('.lang button').forEach(b=>b.onclick=()=>{LANG=b.dataset.l;try{localStorage.setItem('gaLang',LANG)}catch(e){}applyLang()});
+cur=ALL.findIndex(o=>o.n==='掛け算の円 ×2');applyLang();feature(cur);
+}
+</script>
+</body>
+</html>
