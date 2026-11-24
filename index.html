@@ -18,24 +18,24 @@
 html:lang(zh-Hant) body{font-family:"Noto Sans TC",system-ui,sans-serif}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 "Zen Kaku Gothic New",system-ui,sans-serif;overflow-x:clip}
 .band{padding:clamp(24px,4vw,56px) max(5vw,16px);max-width:1320px;margin:0 auto}
-h1{font-size:clamp(32px,5vw,48px);line-height:1.1;margin:0 0 10px;font-weight:700;text-wrap:balance}
-.lead{color:var(--sub);margin:0;max-width:62ch}
+h1{font-size:clamp(26px,3.6vw,36px);line-height:1.1;margin:0 0 6px;font-weight:700;text-wrap:balance}
+.lead{color:var(--sub);margin:0;max-width:62ch;font-size:14px;line-height:1.65}
 .top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
 .lang{display:flex;gap:4px;flex:none}
 .lang button{min-height:40px;padding:0 12px;border-radius:8px;border:1px solid var(--line);background:transparent;cursor:pointer;font-size:14px}
 .lang button[aria-pressed=true]{border-color:var(--ink);font-weight:700}
-.hero{display:grid;grid-template-columns:minmax(0,.6fr) minmax(0,1fr);gap:clamp(20px,4vw,48px);align-items:center;margin-top:28px}
+.hero{display:grid;grid-template-columns:minmax(0,.6fr) minmax(0,1fr);gap:clamp(16px,3vw,32px);align-items:start;margin-top:18px}
 .hero canvas{width:100%;aspect-ratio:1;display:block;background:var(--plate);border-radius:6px}
-.tag{display:inline-block;font-size:13px;font-weight:500;color:var(--c);border:1px solid var(--c);border-radius:99px;padding:2px 12px}
-.hero h2{font-size:clamp(28px,3.6vw,40px);line-height:1.15;margin:14px 0 18px;font-weight:700}
-.hero dl{margin:0}.hero dt{font-size:13px;color:var(--sub);margin-top:14px}.hero dd{margin:2px 0 0;font-size:17px}
-.ctl{display:flex;gap:8px;margin-top:20px;flex-wrap:wrap}
+.tag{display:inline-block;font-size:12px;font-weight:500;color:var(--c);border:1px solid var(--c);border-radius:99px;padding:1px 10px}
+.hero h2{font-size:clamp(22px,2.6vw,28px);line-height:1.2;margin:8px 0 6px;font-weight:700}
+.hero dl{margin:0}.hero dt{font-size:12px;color:var(--sub);margin-top:8px}.hero dd{margin:1px 0 0;font-size:14px;line-height:1.6}
+.ctl{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
 button{font:inherit;color:inherit}
-.ctl button{min-height:44px;padding:0 16px;border-radius:8px;border:1px solid var(--line);background:transparent;cursor:pointer;font-size:15px}
+.ctl button{min-height:34px;padding:0 12px;border-radius:7px;border:1px solid var(--line);background:transparent;cursor:pointer;font-size:13px}
 .ctl button:hover{border-color:var(--sub)}
 .ctl button.on{border-color:var(--c);color:var(--c);font-weight:500}
 .ctl button[hidden]{display:none}
-.mvnote{font-size:14px;color:var(--sub);margin:12px 0 0;min-height:1.6em}
+.mvnote{font-size:12px;color:var(--sub);margin:6px 0 0;min-height:1.5em}
 button:focus-visible{outline:2px solid var(--c,#378ADD);outline-offset:2px}
 nav{position:sticky;top:0;z-index:2;background:var(--bg);border-bottom:1px solid var(--line)}
 nav .scroll{display:flex;gap:6px;overflow-x:auto;padding:10px max(5vw,16px);max-width:1320px;margin:0 auto;scrollbar-width:none}
